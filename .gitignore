@@ -216,3 +216,11 @@ __marimo__/
 
 # Streamlit
 .streamlit/secrets.toml
+
+# SignalDesk generated outputs and local databases
+outputs/*
+!outputs/.gitkeep
+*.db
+
+# macOS
+.DS_Store

@@ -1,0 +1,36 @@
+feedback_id,feedback_text,expected_theme,expected_sentiment,expected_severity,expected_product_area
+EV-001,Payment failed at checkout and wallet balance reduced.,payment_failure,negative,high,payments
+EV-002,UPI payment timed out but money left my account.,payment_failure,negative,critical,payments
+EV-003,Merchant did not receive payment though app showed success.,payment_failure,negative,high,payments
+EV-004,Refund for returned order still not credited after 14 days.,refund_delay,negative,high,refunds
+EV-005,Refund status says processing for over a week.,refund_delay,negative,medium,refunds
+EV-006,Wrong refund amount credited compared to original payment.,refund_delay,negative,high,refunds
+EV-007,KYC rejected without explanation after document upload.,kyc_problem,negative,high,kyc
+EV-008,Cannot complete KYC because selfie verification always fails.,kyc_problem,negative,medium,kyc
+EV-009,Account restricted until KYC completes but review is stuck.,kyc_problem,negative,high,kyc
+EV-010,OTP not received for login attempt multiple times.,login_authentication,negative,high,authentication
+EV-011,Locked out after failed OTP with no clear unlock steps.,login_authentication,negative,medium,authentication
+EV-012,Login works but OTP arrives very late during evenings.,login_authentication,negative,low,authentication
+EV-013,Transaction marked pending for two days without update.,transaction_status,negative,medium,transaction_status
+EV-014,Missing transaction in history for completed payment.,transaction_status,negative,medium,transaction_status
+EV-015,Duplicate charge visible for single purchase.,transaction_status,negative,high,transaction_status
+EV-016,Unexpected service fee charged on bill payment.,fees,negative,medium,fees
+EV-017,Annual maintenance fee applied without prior notice.,fees,negative,medium,fees
+EV-018,International transfer fee was higher than shown in preview.,fees,negative,high,fees
+EV-019,Support call disconnected after long wait time.,customer_support,negative,medium,support
+EV-020,Chat support gave generic replies without solving issue.,customer_support,negative,medium,support
+EV-021,Support team resolved my issue within one hour thank you.,customer_support,positive,low,support
+EV-022,App crashes when opening transaction history.,app_performance,negative,high,performance
+EV-023,Very slow load times on home screen after update.,app_performance,negative,medium,performance
+EV-024,App works fine but uses too much battery.,app_performance,negative,low,performance
+EV-025,Refund tracking page is hard to understand.,usability,negative,low,usability
+EV-026,Too many taps needed to find dispute option.,usability,negative,medium,usability
+EV-027,Clean layout and easy navigation for new users.,usability,positive,low,usability
+EV-028,Alert for login from unknown device I did not recognize.,security_concern,negative,critical,security
+EV-029,Worried session remains active after closing app.,security_concern,negative,medium,security
+EV-030,Security settings lack clear explanation of trusted devices.,security_concern,negative,low,security
+EV-031,Please add scheduled recurring rent payments.,feature_request,neutral,low,feature_request
+EV-032,Would like CSV export for monthly statements.,feature_request,neutral,low,feature_request
+EV-033,Payment failed and refund also delayed very poor experience.,payment_failure,negative,critical,payments
+EV-034,Good rewards program but app freezes sometimes.,app_performance,mixed,medium,performance
+EV-035,Okay service overall.,customer_support,neutral,low,support

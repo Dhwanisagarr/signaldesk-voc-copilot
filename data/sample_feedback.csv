@@ -1,0 +1,56 @@
+feedback_id,feedback_text,source,date,rating,user_type,region,product_area,language
+FB-001,Payment failed three times while paying electricity bill but amount was still deducted from wallet.,in_app,2025-01-05,1,retail,Mumbai,payments,English
+FB-002,Refund for cancelled train ticket is still pending after 12 days.,email,2025-01-06,2,retail,Delhi,refunds,English
+FB-003,KYC verification rejected without clear reason even after uploading PAN and Aadhaar.,support_chat,2025-01-07,1,new_user,Bengaluru,kyc,English
+FB-004,Unable to login since morning OTP is not arriving on registered mobile number.,in_app,2025-01-08,1,retail,Chennai,authentication,English
+FB-005,Transaction shows successful but merchant says payment not received.,in_app,2025-01-09,1,retail,Hyderabad,payments,English
+FB-006,Customer support kept me on hold for 25 minutes and then disconnected the call.,phone,2025-01-10,1,retail,Pune,support,English
+FB-007,Monthly maintenance fee was charged without any prior notification.,email,2025-01-11,2,SME,Ahmedabad,fees,English
+FB-008,App crashes whenever I open transaction history for last six months.,in_app,2025-01-12,2,retail,Kolkata,performance,English
+FB-009,Finding refund status page is confusing and labels are not clear.,in_app,2025-01-13,3,retail,Jaipur,usability,English
+FB-010,Received SMS about login from unknown device though I did not attempt login.,email,2025-01-14,1,retail,Lucknow,security,English
+FB-011,Fast UPI payments and clean dashboard design overall.,in_app,2025-01-15,5,retail,Indore,payments,English
+FB-012,Please add option to schedule recurring payments for rent.,in_app,2025-01-16,4,retail,Bhopal,feature_request,English
+FB-013,Payment failed and money deducted both happened in same transaction.,in_app,2025-01-17,1,retail,Surat,payments,English
+FB-014,Refund initiated but status stuck on processing for one week.,support_chat,2025-01-18,2,retail,Coimbatore,refunds,English
+FB-015,Document upload for KYC keeps failing at 99 percent every time.,in_app,2025-01-19,2,new_user,Nagpur,kyc,English
+FB-016,OTP delay is very long during peak evening hours.,in_app,2025-01-20,2,retail,Chandigarh,authentication,English
+FB-017,Transaction history missing entries from last weekend.,in_app,2025-01-21,2,retail,Kochi,transaction_status,English
+FB-018,Support agent could not explain why convenience fee was applied.,phone,2025-01-22,2,SME,Vadodara,fees,English
+FB-019,App is slow to load on older Android phone after latest update.,in_app,2025-01-23,2,retail,Patna,performance,English
+FB-020,Too many steps required to raise a dispute for failed payment.,in_app,2025-01-24,3,retail,Bhubaneswar,usability,English
+FB-021,Concerned that app session stays active even after closing app.,email,2025-01-25,2,retail,Guwahati,security,English
+FB-022,Helpful support team resolved my card linking issue quickly.,support_chat,2025-01-26,5,retail,Mysuru,support,English
+FB-023,Would like dark mode and better font size options in app.,in_app,2025-01-27,4,retail,Thiruvananthapuram,feature_request,English
+FB-024,Payment gateway timeout during checkout at merchant site.,in_app,2025-01-28,2,retail,Ranchi,payments,English
+FB-025,Refund credited to wrong linked bank account.,email,2025-01-29,1,retail,Visakhapatnam,refunds,English
+FB-026,KYC pending for 10 days blocking account usage.,in_app,2025-01-30,1,new_user,Dehradun,kyc,English
+FB-027,Login blocked after three wrong OTP attempts with no reset guidance.,in_app,2025-01-31,2,retail,Amritsar,authentication,English
+FB-028,Pending transaction finally settled after 48 hours without update.,in_app,2025-02-01,2,retail,Madurai,transaction_status,English
+FB-029,Hidden charges on international transfer not shown upfront.,email,2025-02-02,1,SME,Noida,fees,English
+FB-030,App freezes on splash screen after phone restart.,in_app,2025-02-03,1,retail,Raipur,performance,English
+FB-031,Refund and payment failure both happened in same week very frustrating.,in_app,2025-02-04,1,retail,Agra,payments,English
+FB-032,Navigation menu labels are unclear for first time users.,in_app,2025-02-05,3,new_user,Varanasi,usability,English
+FB-033,Received alert for transaction I did not authorize.,phone,2025-02-06,1,retail,Meerut,security,English
+FB-034,Smooth onboarding experience and easy bank linking.,in_app,2025-02-07,5,new_user,Shimla,usability,English
+FB-035,Add export to CSV for monthly transaction summary please.,email,2025-02-08,4,SME,Panaji,feature_request,English
+FB-036,UPI collect request failed but notification still shows pending.,in_app,2025-02-09,2,retail,Jodhpur,payments,English
+FB-037,Refund status page shows completed but amount not in bank.,support_chat,2025-02-10,1,retail,Kanpur,refunds,English
+FB-038,Selfie step in KYC fails due to poor lighting guidance in app.,in_app,2025-02-11,3,new_user,Trichy,kyc,English
+FB-039,Cannot reset MPIN because OTP step fails repeatedly.,in_app,2025-02-12,2,retail,Gwalior,authentication,English
+FB-040,Duplicate debit entry visible in transaction list for same merchant.,in_app,2025-02-13,2,retail,Allahabad,transaction_status,English
+FB-041,Annual fee waiver promise from campaign not reflected in account.,email,2025-02-14,2,retail,Faridabad,fees,English
+FB-042,Good app but laggy during bill pay peak hours.,in_app,2025-02-15,3,retail,Salem,performance,English
+FB-043,Chatbot could not understand my refund delay complaint.,support_chat,2025-02-16,2,retail,Tirupati,support,English
+FB-044,Interface is clean but refund tracking needs simpler wording.,in_app,2025-02-17,3,retail,Udaipur,usability,English
+FB-045,Security settings page does not explain device trust clearly.,in_app,2025-02-18,3,retail,Hubli,security,English
+FB-046,Payment failed again.,in_app,2025-02-19,1,retail,Mumbai,payments,English
+FB-047,Refund delay plus unhelpful support ticket response.,email,2025-02-20,1,retail,Delhi,refunds,English
+FB-048,KYC upload worked but verification status never updated.,in_app,2025-02-21,2,new_user,Bengaluru,kyc,English
+FB-049,Login OTP aaya late par payment successful ho gaya overall okay experience.,in_app,2025-02-22,3,retail,Chennai,authentication,Hinglish
+FB-050,Transaction pending since yesterday need urgent update.,support_chat,2025-02-23,2,SME,Hyderabad,transaction_status,English
+FB-051,Convenience fee higher than competitor apps for same biller.,in_app,2025-02-24,2,retail,Pune,fees,English
+FB-052,App battery drain increased after recent update.,in_app,2025-02-25,2,retail,Kolkata,performance,English
+FB-053,Support resolved KYC issue but refund still pending.,phone,2025-02-26,2,retail,Jaipur,support,English
+FB-054,Love the rewards program but payment failures ruin the experience.,in_app,2025-02-27,3,retail,Lucknow,payments,English
+FB-055,Please add biometric login for faster access.,in_app,2025-02-28,4,retail,Indore,feature_request,English
