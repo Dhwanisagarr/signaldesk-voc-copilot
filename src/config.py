@@ -116,3 +116,18 @@ MAX_RATING: float = 5.0
 ROW_STATUS_VALID: str = "valid"
 ROW_STATUS_WARNING: str = "warning"
 ROW_STATUS_ERROR: str = "error"
+
+# PII masking tokens (Phase 3)
+PII_MASK_TOKENS: dict[str, str] = {
+    "EMAIL": "[EMAIL_REDACTED]",
+    "PHONE": "[PHONE_REDACTED]",
+    "UPI": "[UPI_REDACTED]",
+    "AADHAAR": "[AADHAAR_REDACTED]",
+    "ACCOUNT": "[ACCOUNT_REDACTED]",
+    "TRANSACTION_ID": "[TRANSACTION_ID_REDACTED]",
+    "CARD": "[CARD_REDACTED]",
+    "PAN": "[PAN_REDACTED]",
+}
+
+# Synthetic UPI handles supported for deterministic tests (not all real-world UPI handles)
+SYNTHETIC_UPI_HANDLES: tuple[str, ...] = ("upi",)

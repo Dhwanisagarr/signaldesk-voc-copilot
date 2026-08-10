@@ -60,3 +60,32 @@ Duplicate IDs break identity; duplicate text may be legitimate (many customers r
 - Streamlit upload UI
 - SQLite persistence
 - Export functionality
+
+## Phase 3 decisions
+
+### Why regex detection for the MVP
+
+Regex is deterministic, offline, and easy to test without API keys. It provides a baseline privacy layer before optional LLM analysis.
+
+### Why UPI detection has precedence over email
+
+Both value types can contain `@`. Detecting UPI first prevents misclassifying synthetic handles like `user@upi` as email and protects evidence traceability.
+
+### Why original and masked text are separate
+
+PMs need local traceability to verify quotes, but external processing must never receive raw sensitive text. Dual columns enforce that boundary.
+
+### Why ambiguous patterns require review
+
+Context-free numeric patterns (Aadhaar-like groups, card sequences, standalone PAN-like tokens) can false-positive on order numbers or dates. Flagging them for human review keeps the product honest.
+
+### Known limitations and future improvements
+
+- No personal-name detection
+- No ML-based NER
+- Regex may miss obfuscated or non-standard formats
+- Future phases may add configurable pattern packs and ML-assisted review queues
+
+### Rating range alignment (Phase 3 fix)
+
+`FeedbackRecord` now matches Phase 2 ingestion: optional ratings must be between **1 and 5**. Zero was removed to keep schema validation consistent with the data-quality layer.

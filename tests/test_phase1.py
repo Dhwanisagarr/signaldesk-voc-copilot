@@ -87,6 +87,20 @@ class TestFeedbackRecordSchema:
         with pytest.raises(ValidationError):
             FeedbackRecord(feedback_id="FB-001", feedback_text="Valid text.", rating=6.0)
 
+    def test_rating_zero_rejected(self) -> None:
+        with pytest.raises(ValidationError):
+            FeedbackRecord(feedback_id="FB-001", feedback_text="Valid text.", rating=0)
+
+    def test_rating_one_and_five_valid(self) -> None:
+        low = FeedbackRecord(feedback_id="FB-001", feedback_text="Valid text.", rating=1)
+        high = FeedbackRecord(feedback_id="FB-002", feedback_text="Valid text.", rating=5)
+        assert low.rating == 1
+        assert high.rating == 5
+
+    def test_missing_rating_valid(self) -> None:
+        record = FeedbackRecord(feedback_id="FB-001", feedback_text="Valid text.")
+        assert record.rating is None
+
 
 class TestEvaluationRecordSchema:
     def test_valid_evaluation_record(self) -> None:

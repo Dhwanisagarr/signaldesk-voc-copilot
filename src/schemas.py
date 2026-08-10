@@ -7,7 +7,13 @@ from typing import Literal
 
 from pydantic import BaseModel, Field, field_validator
 
-from src.config import SUPPORTED_REVIEW_STATUSES, SUPPORTED_SENTIMENTS, SUPPORTED_SEVERITIES
+from src.config import (
+    MAX_RATING,
+    MIN_RATING,
+    SUPPORTED_REVIEW_STATUSES,
+    SUPPORTED_SENTIMENTS,
+    SUPPORTED_SEVERITIES,
+)
 
 SentimentLabel = Literal["positive", "neutral", "negative", "mixed", "unknown"]
 SeverityLabel = Literal["low", "medium", "high", "critical"]
@@ -44,8 +50,8 @@ class FeedbackRecord(BaseModel):
         if value is None or (isinstance(value, str) and not value.strip()):
             return None
         rating = float(value)
-        if rating < 0 or rating > 5:
-            raise ValueError("Rating must be between 0 and 5.")
+        if rating < MIN_RATING or rating > MAX_RATING:
+            raise ValueError(f"Rating must be between {MIN_RATING:g} and {MAX_RATING:g}.")
         return rating
 
 
@@ -206,3 +212,42 @@ class ReviewRecord(BaseModel):
                 f"Must be one of: {', '.join(SUPPORTED_REVIEW_STATUSES)}."
             )
         return status
+
+
+class PIIEntity(BaseModel):
+    """A detected PII span within feedback text."""
+
+    entity_type: str = Field(..., min_length=1)
+    start: int = Field(..., ge=0)
+    end: int = Field(..., ge=0)
+    original_length: int = Field(..., ge=0)
+    masked_value: str = Field(..., min_length=1)
+
+    @field_validator("end")
+    @classmethod
+    def end_not_before_start(cls, value: int, info) -> int:
+        start = info.data.get("start", 0)
+        if value < start:
+            raise ValueError("end must be greater than or equal to start.")
+        return value
+
+    @field_validator("original_length")
+    @classmethod
+    def length_matches_span(cls, value: int, info) -> int:
+        start = info.data.get("start", 0)
+        end = info.data.get("end", 0)
+        if end - start != value:
+            raise ValueError("original_length must equal end - start.")
+        return value
+
+
+class PIIDetectionResult(BaseModel):
+    """Result of PII detection and masking for a single text value."""
+
+    original_text: str | None = None
+    masked_text: str = ""
+    detected: bool = False
+    entity_types: list[str] = Field(default_factory=list)
+    entities: list[PIIEntity] = Field(default_factory=list)
+    warning: str | None = None
+    review_required: bool = False
