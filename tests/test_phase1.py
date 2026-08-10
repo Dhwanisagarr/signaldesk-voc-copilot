@@ -165,25 +165,26 @@ class TestPlaceholderSchemas:
     def test_theme_insight_validates_percentage_and_confidence(self) -> None:
         insight = ThemeInsight(
             theme_name="payment_failure",
-            feedback_count=10,
+            mention_count=10,
             feedback_percentage=20.0,
             confidence=0.8,
         )
         assert insight.feedback_count == 10
+        assert insight.mention_count == 10
 
     def test_theme_insight_rejects_invalid_percentage(self) -> None:
         with pytest.raises(ValidationError):
             ThemeInsight(
                 theme_name="payment_failure",
-                feedback_count=10,
+                mention_count=10,
                 feedback_percentage=150.0,
             )
 
-    def test_theme_insight_rejects_negative_feedback_count(self) -> None:
+    def test_theme_insight_rejects_negative_mention_count(self) -> None:
         with pytest.raises(ValidationError):
             ThemeInsight(
                 theme_name="payment_failure",
-                feedback_count=-1,
+                mention_count=-1,
                 feedback_percentage=0.0,
             )
 

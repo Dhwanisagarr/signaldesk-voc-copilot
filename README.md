@@ -2,7 +2,7 @@
 
 A CSV-first, evidence-focused product that helps product managers analyze customer feedback and convert it into source-linked product insights.
 
-**The current repository contains Phases 1–4: foundation, data ingestion, PII masking, and local analysis. LLM integration and theme aggregation are not yet implemented.**
+**The current repository contains Phases 1–6: foundation through the Streamlit dashboard. LLM integration, persistent review storage, and exports are not yet implemented.**
 
 ---
 
@@ -13,6 +13,67 @@ Product managers, founders, product operations managers, and customer-support ma
 ## Initial Use Case
 
 Synthetic Indian fintech customer feedback covering payments, refunds, KYC, authentication, fees, support, performance, usability, and security topics.
+
+## Phase 6 Status
+
+Phase 6 adds a Streamlit dashboard with an end-to-end in-memory workflow:
+
+- **Home** — product overview, sample CSV downloads, prototype disclaimer
+- **Upload & mapping** — CSV upload, inferred or manual column mapping
+- **Data quality** — full `DataQualityReport` with continue / start-over actions
+- **Privacy & masking** — PII summary (no raw PII), masked-text preview, run analysis
+- **Feedback explorer** — filterable analysis table with masked-text detail
+- **Theme insights** — priority-sorted themes with evidence warnings
+- **Theme detail** — distributions, validated quotes, priority components
+- **Review** — in-session approve / reject / needs-more-evidence + notes
+- **Limitations & methodology** — transparent design documentation
+
+**Not yet implemented:** SQLite persistence, exports, LLM integration, evaluation dashboard.
+
+## Running the dashboard
+
+```bash
+python -m venv .venv
+source .venv/bin/activate   # Windows: .venv\Scripts\activate
+pip install -r requirements.txt
+streamlit run app.py
+```
+
+Open the URL shown in the terminal (typically `http://localhost:8501`).
+
+### User workflow
+
+1. Download the sample CSV from **Home** (optional).
+2. Upload a CSV in **Upload & mapping** and confirm column mapping.
+3. Review the **Data quality** report and continue with valid rows.
+4. Review **Privacy & masking** summary (masked text by default).
+5. Click **Run local analysis**.
+6. Explore records in **Feedback explorer**.
+7. Review **Theme insights** and **Theme detail** (quotes, priority components).
+8. Record in-session review decisions in **Review**.
+9. Use **Clear session data** in the sidebar to reset.
+
+### Session-only storage
+
+Uploaded CSV data, masked text, analysis results, and review decisions are stored in **Streamlit session state** for the current browser session only. Nothing is written to disk under `outputs/` or the repository.
+
+### Privacy limitations
+
+- Analysis uses `masked_text` only; the dashboard prefers masked text when PII is detected.
+- Regex masking does not guarantee complete anonymization.
+- Error messages avoid exposing customer text.
+
+## Phase 5 Status
+
+Phase 5 adds theme-level aggregation, evidence validation, and transparent prioritization:
+
+- **Theme aggregation** from Phase 4 analysis results with separate primary, secondary, and mention counts
+- **Evidence-linked masked quotes** validated against `masked_text` only (never `original_text`)
+- **Evidence strength** heuristic (weak / moderate / strong) with supporting feedback IDs
+- **Prototype prioritization score** with transparent components (`frequency × severity × confidence`)
+- Deterministic templates for possible root causes and suggested actions (require PM validation)
+
+**Implemented in library modules; dashboard in Phase 6.**
 
 ## Phase 4 Status
 
@@ -25,42 +86,36 @@ Phase 4 adds a local, deterministic analysis engine:
 - Severity and intent rules independent from sentiment
 - Batch pipeline requiring **`masked_text`** only (never raw `original_text`)
 
-**Not yet implemented:** Theme aggregation, prioritization, Streamlit dashboard, human review persistence, exports, or LLM integration.
-
 ## Synthetic Data Notice
 
 **All feedback in this repository is synthetic.** It was created for demonstration and testing only. It does not represent real customers, real transactions, or real business outcomes. Do not treat sample outputs as evidence of product performance.
 
-## Current Scope (Phase 4)
+## Current Scope (Phase 6)
 
 | Included | Not included |
 |----------|--------------|
-| Phases 1–3 (foundation, ingestion, PII) | Streamlit upload UI |
-| Local sentiment analysis | Theme aggregation / prioritization |
-| Primary + secondary theme classification | Human review persistence |
-| TF-IDF batch fallback | Export reports |
-| Exploratory K-Means clustering | LLM / external API integration |
-| `analyze_feedback_dataframe()` pipeline | Dashboard |
-| Centralized rules in `src/analysis_config.py` | |
-| Phase 1–4 pytest suites (163 tests) | |
+| Phases 1–5 (foundation through prioritization) | SQLite / persistent storage |
+| Streamlit dashboard with 9 sections | Export reports (CSV, JSON, PDF) |
+| In-memory review workflow | LLM / external API integration |
+| CSV upload, mapping, data quality, masking UI | Multi-user collaboration |
+| Feedback explorer with filters and search | Evaluation dashboard UI |
+| Theme insights, detail, evidence quotes | Automatic data collection |
+| Session-only data handling | |
+| `src/ui_helpers.py` + Phase 1–6 pytest suites | |
 
 ## Future Scope
 
-- CSV upload with column mapping
-- Data quality validation and duplicate detection
-- PII detection and masking (original + masked text)
-- Local rule-based analysis with TF-IDF and clustering
-- Optional LLM provider with deterministic fallback
-- Evidence-linked theme insights and transparent prioritization
-- Human review states (pending, approved, rejected, needs_more_evidence)
-- Evaluation dashboard with accuracy metrics
+- SQLite persistence for human review
 - Export to CSV, JSON, and Markdown
+- Optional LLM provider with deterministic fallback
+- Evaluation dashboard with accuracy metrics
+- PDF export
 
 ## Project Structure
 
 ```
 signaldesk-voc-copilot/
-├── app.py                  # Streamlit placeholder
+├── app.py                  # Streamlit dashboard (Phase 6)
 ├── requirements.txt
 ├── pytest.ini
 ├── .env.example
@@ -81,7 +136,10 @@ signaldesk-voc-copilot/
 │   ├── sentiment.py
 │   ├── theme_classifier.py
 │   ├── clustering.py
-│   └── analysis_pipeline.py
+│   ├── analysis_pipeline.py
+│   ├── evidence.py
+│   ├── prioritization.py
+│   └── ui_helpers.py       # Dashboard formatting & session helpers
 ├── tests/
 │   ├── test_phase1.py
 │   ├── test_data_loader.py
@@ -90,7 +148,10 @@ signaldesk-voc-copilot/
 │   ├── test_sentiment.py
 │   ├── test_theme_classifier.py
 │   ├── test_clustering.py
-│   └── test_analysis_pipeline.py
+│   ├── test_analysis_pipeline.py
+│   ├── test_evidence.py
+│   ├── test_prioritization.py
+│   └── test_ui_helpers.py
 └── outputs/                # Generated exports (gitignored)
 ```
 
@@ -335,15 +396,139 @@ Rows with missing masked text, weak theme evidence, low confidence, or PII revie
 - Rule-based sentiment is not production-grade NLP
 - TF-IDF fallback is exploratory, not semantic understanding
 - K-Means clusters are not product themes
-- No theme-level aggregation, evidence quotes, or prioritization yet
 - No Streamlit UI integration
 
-## Known Limitations (Phase 4)
+## Phase 5 – Theme Aggregation, Evidence & Prioritization
+
+### Theme-level aggregation
+
+Phase 5 aggregates Phase 4 `AnalysisResult` records into `ThemeInsight` objects. Each theme receives:
+
+- **`primary_count`** — records where the theme is the primary theme
+- **`secondary_count`** — records where the theme appears only as a secondary theme
+- **`mention_count`** — unique feedback records mentioning the theme (primary or secondary, counted once)
+- **`feedback_percentage`** — `mention_count / total_valid_feedback_records × 100`
+
+All counts, percentages, averages, and distributions are computed in Python — not by an LLM.
+
+### Primary vs secondary vs mention count
+
+Because feedback can contain multiple themes, primary and secondary counts are tracked separately. A single record counts at most once toward `mention_count` for a theme, even if the same theme appeared in both roles (which should not happen in practice).
+
+### Evidence-linked masked quotes
+
+Representative quotes (max **3** per theme) must be exact matches or contiguous excerpts from `masked_text`. Quotes are never taken from `original_text`, never invented, and never grammar-corrected. Invalid quotes are rejected and excluded from display.
+
+### Quote validation
+
+`validate_quote()` checks:
+
+- Feedback ID exists in the masked DataFrame
+- Quote matches `masked_text` exactly or as a substring
+- Quote supports the associated theme classification
+
+Validation statuses: `valid`, `invalid`, `missing_source`, `missing_feedback_id`, `requires_review`.
+
+### Evidence strength (prototype heuristic)
+
+| Label | Criteria (simplified) |
+|-------|----------------------|
+| **weak** | Fewer than 3 supporting records, invalid/missing quotes, or low confidence |
+| **moderate** | At least 3 records with valid masked quotes and reasonable confidence |
+| **strong** | At least 5 records, high confidence, valid quotes, multiple sources when available |
+
+Evidence strength is a prototype heuristic — not statistical truth. High frequency alone does not make evidence strong.
+
+### Prototype prioritization score
+
+```
+priority_score = frequency_score × severity_score × confidence_score
+```
+
+Where:
+
+- `frequency_score = mention_count / total_valid_feedback_records`
+- `severity_score = average_known_severity / 5` (unknown severity excluded)
+- `confidence_score = average confidence of supporting records`
+
+Every score includes the warning: **"Prototype prioritization score – requires PM judgment."** The score does not automatically create roadmap items.
+
+K-Means cluster IDs do **not** affect priority.
+
+### Suggested actions are not confirmed decisions
+
+`possible_root_causes` and `suggested_product_actions` use deterministic templates from theme rules. They are labeled as interpretations requiring PM validation — not confirmed product decisions or business impact claims.
+
+### Pipeline usage
+
+```python
+from src.data_loader import load_and_validate_feedback
+from src.pii_detector import mask_dataframe_feedback
+from src.analysis_pipeline import analyze_feedback_dataframe
+from src.evidence import aggregate_theme_insights
+from src.prioritization import prioritize_theme_insights
+
+loaded = load_and_validate_feedback("data/sample_feedback.csv")
+masked = mask_dataframe_feedback(loaded.valid_rows)
+analysis = analyze_feedback_dataframe(masked)
+aggregation = aggregate_theme_insights(analysis.results, masked)
+insights = prioritize_theme_insights(
+    aggregation.insights,
+    aggregation.total_valid_feedback_records,
+)
+```
+
+### Phase 5 limitations
+
+- Root causes and suggested actions are template-based, not LLM-generated
+- Evidence strength and priority scores are prototype heuristics
+- Secondary theme detection depends on Phase 4 classification quality
+
+## Phase 6 – Streamlit Dashboard
+
+### Dashboard sections
+
+| Section | Purpose |
+|---------|---------|
+| Home | Overview, disclaimers, sample CSV downloads |
+| Upload & mapping | CSV upload, inferred/manual column mapping |
+| Data quality | Full quality report, continue with valid rows |
+| Privacy & masking | PII summary, masked preview, run analysis |
+| Feedback explorer | Filterable per-record analysis table |
+| Theme insights | Priority-sorted theme cards with warnings |
+| Theme detail | Distributions, quotes, priority components |
+| Review | In-session status and reviewer notes |
+| Limitations & methodology | Design transparency |
+
+### Manual testing checklist
+
+1. Start the app: `streamlit run app.py`
+2. Download sample CSV from Home
+3. Upload `data/sample_feedback.csv`
+4. Confirm inferred column mapping
+5. Continue with valid rows on Data quality
+6. Verify PII summary shows counts without raw PII
+7. Run local analysis
+8. Confirm theme insights and masked evidence quotes appear
+9. Change a review status and add a note
+10. Clear session data and confirm state resets
+11. Upload invalid file type — verify readable error
+
+### Phase 6 limitations
+
+- No persistent storage or export
+- Review decisions lost when session clears or browser closes
+- Re-upload required after session clear
+- No LLM or external API integration
+
+## Known Limitations (Phase 6)
 
 - Analysis quality depends on keyword coverage and masked text quality
 - Hinglish support is limited to configured terms
 - No LLM enhancement or evaluation dashboard yet
-- No persistence, export, or human review workflow
+- No persistence, export, or cross-session human review workflow
+- Evidence strength and prioritization require PM judgment
+- Dashboard stores uploaded data in browser session memory only
 
 ## Privacy Note
 
@@ -356,10 +541,10 @@ Treat all uploaded customer feedback as potentially sensitive. Phase 1 includes 
 | **1** | Foundation, schemas, synthetic data, tests |
 | **2** | CSV loading, validation, data quality report |
 | **3** | PII detection and masking |
-| **4** (current) | Local analysis engine (sentiment, theme, severity) |
+| **4** | Local analysis engine (sentiment, theme, severity) |
 | **5** | Theme aggregation, evidence, prioritization |
-| **6** | Streamlit dashboard (upload → insights) |
-| **7** | Human review and export |
+| **6** (current) | Streamlit dashboard (upload → insights) |
+| **7** | Human review persistence and export |
 | **8** | Evaluation module |
 | **9** | Optional LLM layer |
 | **10** | Portfolio polish and documentation |

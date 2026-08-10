@@ -120,8 +120,79 @@ Cluster IDs indicate textual similarity, not validated product themes. Keeping c
 
 A neutral-toned security alert may still be critical. Severity rules inspect financial and security context independently.
 
-### What is deferred to Phase 5
+### What is deferred to Phase 6
 
-- Theme-level aggregation and counts
-- Evidence-linked quotes and prioritization
+- Streamlit dashboard (upload → insights)
 - Human review persistence and export
+- SQLite storage
+
+## Phase 5 decisions
+
+### Why primary and secondary counts are separate
+
+Feedback can express multiple independent problems. Tracking primary and secondary counts separately preserves how strongly each theme was classified without collapsing multi-theme records into a single label.
+
+### Why a feedback record counts only once per theme mention_count
+
+Double-counting the same record would inflate theme frequency and mislead prioritization. `mention_count` deduplicates by `feedback_id` while still allowing separate primary and secondary tallies.
+
+### Why quotes must be exact masked excerpts
+
+PMs must audit insights against source feedback. Exact excerpts from `masked_text` preserve traceability and privacy. Summarized or invented quotes break the evidence chain.
+
+### Why unsupported quotes are rejected
+
+A quote that does not appear in masked source text or does not support the theme cannot serve as evidence. Rejected quotes generate warnings rather than being displayed as proof.
+
+### Why evidence strength is heuristic
+
+Frequency and confidence alone do not prove root cause or business impact. The weak/moderate/strong labels are transparent prototype rules, not statistical guarantees.
+
+### Why prioritization is transparent
+
+PMs need to understand why one theme ranks above another. Showing `frequency_score`, `severity_score`, and `confidence_score` avoids a black-box ranking.
+
+### Why K-Means does not affect product priority
+
+Cluster IDs reflect textual similarity, not validated product themes. Using cluster size as a priority proxy would elevate unvalidated groups.
+
+### What is deferred to Phase 6
+
+- Streamlit dashboard UI
+- Human review persistence and approval workflow
+- Export to CSV, JSON, and Markdown
+- SQLite persistence
+
+## Phase 6 decisions
+
+### Why Streamlit was selected
+
+Streamlit enables a fast, Python-native dashboard for a portfolio MVP without building a separate frontend. It fits the CSV-upload → inspect → review workflow and keeps the focus on analysis transparency rather than UI polish.
+
+### Why business logic remains outside app.py
+
+Loading, cleaning, masking, analysis, aggregation, and prioritization live in dedicated `src/` modules with pytest coverage. `app.py` orchestrates the workflow; `src/ui_helpers.py` handles formatting, filtering, and session helpers. This keeps the dashboard testable and avoids duplicating data-loader logic in the UI layer.
+
+### Why session state is used for the MVP
+
+Persistent storage (SQLite, cloud) adds complexity and security review overhead for a prototype. Streamlit `session_state` is sufficient to demonstrate the full workflow while making clear that data does not survive a session reset.
+
+### Why persistent storage is deferred
+
+Uploaded customer feedback should not be written to disk without explicit retention policies. Phase 7 will add opt-in persistence with appropriate safeguards.
+
+### Why masked text is shown by default
+
+When PII is detected, the dashboard defaults to masked text to reduce accidental exposure in previews and record detail. Original text is shown only when no PII was detected and the user disables the masked-only toggle.
+
+### Why priority score components are visible
+
+PMs must understand why one theme ranks above another. The Theme detail section surfaces `frequency_score`, `severity_score`, and `confidence_score` alongside the prototype disclaimer.
+
+### What is deferred to Phase 7
+
+- SQLite persistence for review decisions
+- Export to CSV, JSON, and Markdown
+- Evaluation dashboard UI
+- Optional LLM layer
+- PDF export

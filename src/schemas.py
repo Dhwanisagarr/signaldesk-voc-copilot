@@ -28,6 +28,14 @@ AnalysisMethodLabel = Literal[
 ]
 ReviewStatus = Literal["pending", "approved", "rejected", "needs_more_evidence"]
 RowIssueSeverity = Literal["valid", "warning", "error"]
+EvidenceStrengthLabel = Literal["weak", "moderate", "strong"]
+QuoteValidationStatus = Literal[
+    "valid",
+    "invalid",
+    "missing_source",
+    "missing_feedback_id",
+    "requires_review",
+]
 
 
 class FeedbackRecord(BaseModel):
@@ -220,16 +228,36 @@ class AnalysisPipelineResult(BaseModel):
 
 
 class ThemeInsight(BaseModel):
-    """Placeholder theme-level insight for future phases."""
+    """Theme-level aggregated insight with evidence and prioritization metadata."""
 
     theme_name: str = Field(..., min_length=1)
-    feedback_count: int = Field(..., ge=0)
-    feedback_percentage: float = Field(..., ge=0.0, le=100.0)
+    primary_count: int = Field(default=0, ge=0)
+    secondary_count: int = Field(default=0, ge=0)
+    mention_count: int = Field(default=0, ge=0)
+    feedback_percentage: float = Field(default=0.0, ge=0.0, le=100.0)
+    average_rating: float | None = None
+    sentiment_distribution: dict[str, int] = Field(default_factory=dict)
+    severity_distribution: dict[str, int] = Field(default_factory=dict)
+    source_distribution: dict[str, int] = Field(default_factory=dict)
+    segment_distribution: dict[str, int] = Field(default_factory=dict)
+    date_range: dict[str, str | None] = Field(default_factory=dict)
+    trend_data: dict[str, int] = Field(default_factory=dict)
     representative_quotes: list[str] = Field(default_factory=list)
+    evidence_quotes: list["EvidenceQuote"] = Field(default_factory=list)
     source_feedback_ids: list[str] = Field(default_factory=list)
-    suggested_product_action: str = ""
+    possible_root_causes: list[str] = Field(default_factory=list)
+    suggested_product_actions: list[str] = Field(default_factory=list)
+    evidence_strength: EvidenceStrengthLabel = "weak"
     confidence: float = Field(default=0.0, ge=0.0, le=1.0)
+    priority_score: float = Field(default=0.0, ge=0.0)
+    priority_components: "PriorityComponents | None" = None
     human_review_status: ReviewStatus = "pending"
+    warnings: list[str] = Field(default_factory=list)
+
+    # Backward-compatible alias used in Phase 1 placeholder tests.
+    @property
+    def feedback_count(self) -> int:
+        return self.mention_count
 
     @field_validator("human_review_status", mode="before")
     @classmethod
@@ -241,6 +269,40 @@ class ThemeInsight(BaseModel):
                 f"Must be one of: {', '.join(SUPPORTED_REVIEW_STATUSES)}."
             )
         return status
+
+
+class EvidenceQuote(BaseModel):
+    """A validated masked quote linked to a feedback record."""
+
+    feedback_id: str = ""
+    quote: str = ""
+    source: str | None = None
+    date: str | None = None
+    rating: float | None = None
+    quote_is_exact: bool = False
+    validation_status: QuoteValidationStatus = "invalid"
+    validation_message: str = ""
+
+
+class PriorityComponents(BaseModel):
+    """Transparent prototype prioritization score components."""
+
+    priority_score: float = Field(default=0.0, ge=0.0)
+    frequency_score: float = Field(default=0.0, ge=0.0, le=1.0)
+    severity_score: float = Field(default=0.0, ge=0.0, le=1.0)
+    confidence_score: float = Field(default=0.0, ge=0.0, le=1.0)
+    priority_method: str = "frequency_x_severity_x_confidence"
+    priority_warning: str = "Prototype prioritization score – requires PM judgment."
+
+
+class ThemeAggregationResult(BaseModel):
+    """Output of theme-level evidence aggregation."""
+
+    insights: list[ThemeInsight] = Field(default_factory=list)
+    total_valid_feedback_records: int = Field(default=0, ge=0)
+    excluded_analysis_results: int = Field(default=0, ge=0)
+    invalid_quotes: int = Field(default=0, ge=0)
+    warnings: list[str] = Field(default_factory=list)
 
 
 class RowIssue(BaseModel):
@@ -337,3 +399,6 @@ class PIIDetectionResult(BaseModel):
     entities: list[PIIEntity] = Field(default_factory=list)
     warning: str | None = None
     review_required: bool = False
+
+
+ThemeInsight.model_rebuild()

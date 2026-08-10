@@ -131,3 +131,17 @@ PII_MASK_TOKENS: dict[str, str] = {
 
 # Synthetic UPI handles supported for deterministic tests (not all real-world UPI handles)
 SYNTHETIC_UPI_HANDLES: tuple[str, ...] = ("upi",)
+
+# Phase 5 evidence and prioritization
+MASKED_TEXT_REQUIRED_ERROR: str = (
+    "Theme aggregation requires a 'masked_text' column. "
+    "Use Phase 3 PII masking before aggregation."
+)
+MAX_REPRESENTATIVE_QUOTES: int = 3
+EVIDENCE_WEAK_MAX_MENTIONS: int = 2
+EVIDENCE_MODERATE_MIN_MENTIONS: int = 3
+EVIDENCE_STRONG_MIN_MENTIONS: int = 5
+EVIDENCE_STRONG_MIN_CONFIDENCE: float = 0.5
+EVIDENCE_STRONG_MIN_SOURCES: int = 2
+PRIORITY_SCORE_WARNING: str = "Prototype prioritization score – requires PM judgment."
+EXCLUDED_AGGREGATION_THEMES: tuple[str, ...] = ("unknown", "other")
