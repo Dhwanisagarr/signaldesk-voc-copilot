@@ -17,6 +17,15 @@ from src.config import (
 
 SentimentLabel = Literal["positive", "neutral", "negative", "mixed", "unknown"]
 SeverityLabel = Literal["low", "medium", "high", "critical"]
+AnalysisSeverityLabel = Literal["low", "medium", "high", "critical", "unknown"]
+IntentLabel = Literal["complaint", "praise", "question", "request", "bug_report", "unknown"]
+AnalysisMethodLabel = Literal[
+    "local_rule_based",
+    "keyword_rule",
+    "tfidf_fallback",
+    "exploratory_cluster",
+    "unknown",
+]
 ReviewStatus = Literal["pending", "approved", "rejected", "needs_more_evidence"]
 RowIssueSeverity = Literal["valid", "warning", "error"]
 
@@ -102,15 +111,71 @@ class EvaluationRecord(BaseModel):
         return severity
 
 
+class SentimentResult(BaseModel):
+    """Deterministic sentiment analysis output for masked feedback text."""
+
+    label: SentimentLabel = "unknown"
+    score: float = Field(default=0.0, ge=0.0, le=1.0)
+    positive_score: float = Field(default=0.0, ge=0.0)
+    negative_score: float = Field(default=0.0, ge=0.0)
+    matched_positive_terms: list[str] = Field(default_factory=list)
+    matched_negative_terms: list[str] = Field(default_factory=list)
+    warning: str | None = None
+    method: str = "local_rule_based"
+
+
+class ThemeLabel(BaseModel):
+    """A detected theme assignment with per-theme metadata."""
+
+    theme: str
+    subtheme: str = "unknown"
+    confidence: float = Field(default=0.0, ge=0.0, le=1.0)
+    matched_terms: list[str] = Field(default_factory=list)
+    product_area: str = "unknown"
+    severity: AnalysisSeverityLabel = "unknown"
+    method: str = "keyword_rule"
+    warning: str | None = None
+
+
+class ThemeClassification(BaseModel):
+    """Primary and secondary theme classification for one feedback item."""
+
+    primary_theme: str = "unknown"
+    primary_subtheme: str = "unknown"
+    primary_confidence: float = Field(default=0.0, ge=0.0, le=1.0)
+    secondary_themes: list[ThemeLabel] = Field(default_factory=list)
+    matched_terms_by_theme: dict[str, list[str]] = Field(default_factory=dict)
+    confidence_by_theme: dict[str, float] = Field(default_factory=dict)
+    product_area_by_theme: dict[str, str] = Field(default_factory=dict)
+    severity_by_theme: dict[str, str] = Field(default_factory=dict)
+    method: str = "keyword_rule"
+    warning: str | None = None
+    requires_human_review: bool = False
+
+
 class AnalysisResult(BaseModel):
-    """Placeholder per-item analysis output for future phases."""
+    """Per-item local analysis output (Phase 4)."""
 
     feedback_id: str = Field(..., min_length=1)
     sentiment: SentimentLabel = "unknown"
-    theme: str = "unknown"
-    severity: SeverityLabel = "low"
+    sentiment_score: float = Field(default=0.0, ge=0.0, le=1.0)
+    primary_theme: str = "unknown"
+    primary_subtheme: str = "unknown"
+    primary_confidence: float = Field(default=0.0, ge=0.0, le=1.0)
+    secondary_themes: list[ThemeLabel] = Field(default_factory=list)
+    product_area: str = "unknown"
+    severity: AnalysisSeverityLabel = "unknown"
+    severity_score: float = Field(default=1.0, ge=1.0, le=5.0)
+    intent: IntentLabel = "unknown"
+    customer_problem: str = ""
     confidence: float = Field(default=0.0, ge=0.0, le=1.0)
-    analysis_method: str = "not_implemented"
+    matched_terms: list[str] = Field(default_factory=list)
+    supporting_feedback_ids: list[str] = Field(default_factory=list)
+    requires_human_review: bool = False
+    analysis_method: AnalysisMethodLabel = "unknown"
+    analysis_warnings: list[str] = Field(default_factory=list)
+    cluster_id: int | None = None
+    theme: str = "unknown"  # backward-compatible alias for primary_theme
 
     @field_validator("sentiment", mode="before")
     @classmethod
@@ -126,11 +191,32 @@ class AnalysisResult(BaseModel):
     @classmethod
     def validate_severity(cls, value: object) -> str:
         severity = str(value).strip().lower()
-        if severity not in SUPPORTED_SEVERITIES:
-            raise ValueError(
-                f"Invalid severity '{value}'. Must be one of: {', '.join(SUPPORTED_SEVERITIES)}."
-            )
+        allowed = (*SUPPORTED_SEVERITIES, "unknown")
+        if severity not in allowed:
+            raise ValueError(f"Invalid severity '{value}'. Must be one of: {', '.join(allowed)}.")
         return severity
+
+
+class ClusterResult(BaseModel):
+    """Exploratory similarity group metadata — not a confirmed product theme."""
+
+    cluster_id: int = Field(..., ge=0)
+    feedback_ids: list[str] = Field(default_factory=list)
+    representative_terms: list[str] = Field(default_factory=list)
+    cluster_size: int = Field(default=0, ge=0)
+    warning: str | None = None
+
+
+class AnalysisPipelineResult(BaseModel):
+    """Batch analysis output from the local analysis pipeline."""
+
+    results: list[AnalysisResult] = Field(default_factory=list)
+    clusters: list[ClusterResult] = Field(default_factory=list)
+    total_records: int = Field(default=0, ge=0)
+    analyzed_records: int = Field(default=0, ge=0)
+    unknown_records: int = Field(default=0, ge=0)
+    human_review_records: int = Field(default=0, ge=0)
+    warnings: list[str] = Field(default_factory=list)
 
 
 class ThemeInsight(BaseModel):

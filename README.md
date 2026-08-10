@@ -2,7 +2,7 @@
 
 A CSV-first, evidence-focused product that helps product managers analyze customer feedback and convert it into source-linked product insights.
 
-**The current repository contains Phase 1 foundation, Phase 2 data ingestion, and Phase 3 PII detection/masking. AI analysis has not yet been implemented.**
+**The current repository contains Phases 1–4: foundation, data ingestion, PII masking, and local analysis. LLM integration and theme aggregation are not yet implemented.**
 
 ---
 
@@ -14,31 +14,35 @@ Product managers, founders, product operations managers, and customer-support ma
 
 Synthetic Indian fintech customer feedback covering payments, refunds, KYC, authentication, fees, support, performance, usability, and security topics.
 
-## Phase 3 Status
+## Phase 4 Status
 
-Phase 3 adds deterministic regex-based PII detection and masking:
+Phase 4 adds a local, deterministic analysis engine:
 
-- Detect email, phone, UPI, Aadhaar-like numbers, account numbers, transaction IDs, card-like numbers, and PAN-like identifiers
-- Preserve `original_text` and produce `masked_text` for safe downstream use
-- DataFrame helper adds PII metadata columns
-- No external API calls; all processing is local and in-memory
+- Rule-based sentiment analysis (positive, negative, neutral, mixed, unknown)
+- Keyword/phrase theme classification with primary and secondary themes
+- Dataset-level TF-IDF fallback for low-confidence records
+- Exploratory K-Means clustering (metadata only — does not alter classifications)
+- Severity and intent rules independent from sentiment
+- Batch pipeline requiring **`masked_text`** only (never raw `original_text`)
 
-**Not yet implemented:** Sentiment/theme analysis, Streamlit upload UI, human review, exports, or LLM integration.
+**Not yet implemented:** Theme aggregation, prioritization, Streamlit dashboard, human review persistence, exports, or LLM integration.
 
 ## Synthetic Data Notice
 
 **All feedback in this repository is synthetic.** It was created for demonstration and testing only. It does not represent real customers, real transactions, or real business outcomes. Do not treat sample outputs as evidence of product performance.
 
-## Current Scope (Phase 3)
+## Current Scope (Phase 4)
 
 | Included | Not included |
 |----------|--------------|
-| Phase 1 foundation and schemas | Streamlit upload UI |
-| Phase 2 CSV ingestion and validation | Sentiment/theme analysis |
-| PII detection and masking (`src/pii_detector.py`) | Clustering and insights |
-| `original_text` + `masked_text` columns | Human review workflow |
-| DataFrame PII helper | Export reports |
-| Phase 1–3 pytest suites | LLM integration |
+| Phases 1–3 (foundation, ingestion, PII) | Streamlit upload UI |
+| Local sentiment analysis | Theme aggregation / prioritization |
+| Primary + secondary theme classification | Human review persistence |
+| TF-IDF batch fallback | Export reports |
+| Exploratory K-Means clustering | LLM / external API integration |
+| `analyze_feedback_dataframe()` pipeline | Dashboard |
+| Centralized rules in `src/analysis_config.py` | |
+| Phase 1–4 pytest suites (163 tests) | |
 
 ## Future Scope
 
@@ -72,13 +76,21 @@ signaldesk-voc-copilot/
 │   ├── schemas.py
 │   ├── data_loader.py
 │   ├── cleaner.py
-│   └── pii_detector.py
+│   ├── pii_detector.py
+│   ├── analysis_config.py
+│   ├── sentiment.py
+│   ├── theme_classifier.py
+│   ├── clustering.py
+│   └── analysis_pipeline.py
 ├── tests/
-│   ├── __init__.py
 │   ├── test_phase1.py
 │   ├── test_data_loader.py
 │   ├── test_cleaner.py
-│   └── test_pii_detector.py
+│   ├── test_pii_detector.py
+│   ├── test_sentiment.py
+│   ├── test_theme_classifier.py
+│   ├── test_clustering.py
+│   └── test_analysis_pipeline.py
 └── outputs/                # Generated exports (gitignored)
 ```
 
@@ -270,13 +282,68 @@ result = detect_and_mask_pii("Contact user@example.com for help.")
 safe_text = result.masked_text  # use for future analysis
 ```
 
-## Known Limitations (Phase 3)
+## Phase 4 – Local Analysis Engine
 
-- PII detection is regex-based and may miss or over-detect sensitive values
-- No Streamlit UI integration yet
-- No sentiment, theme, clustering, or LLM analysis
-- No persistence, human review, or export
-- Sample datasets remain synthetic and PII-free
+### Local-only analysis
+
+All analysis is deterministic and runs locally. No LLM or external API calls are made. The engine uses **`masked_text` only** — never `original_text` or raw `feedback_text`.
+
+### Sentiment labels
+
+`positive`, `negative`, `neutral`, `mixed`, `unknown` — determined by keyword matching with explainable matched terms. Sentiment is independent from severity.
+
+### Themes (primary + secondary)
+
+Supported themes include: `payment_failure`, `refund_delay`, `kyc_problem`, `login_authentication`, `otp_problem`, `transaction_status`, `fees`, `customer_support`, `app_performance`, `usability`, `security_concern`, `feature_request`, `other`, `unknown`.
+
+Each record receives one **primary theme** and zero or more **secondary themes** when multiple independent problems are detected. Generic words like "problem" alone do not trigger classification.
+
+### TF-IDF batch fallback
+
+TF-IDF is fitted once per batch on masked texts. It is used only when keyword confidence is below threshold. It never overrides high-confidence keyword matches. Single-text classification does not fit TF-IDF.
+
+### Exploratory clustering
+
+K-Means assigns `cluster_id` metadata labeled as **exploratory similarity groups**. Clustering does **not** modify sentiment, themes, severity, intent, or confidence.
+
+### Severity and intent
+
+Severity (`low`, `medium`, `high`, `critical`, `unknown`) and intent (`complaint`, `praise`, `question`, `request`, `bug_report`, `unknown`) are rule-based and independent from sentiment. A positive review can still contain a critical security problem.
+
+### Centralized configuration
+
+Editable rules live in `src/analysis_config.py`: sentiment lexicon, theme keywords/phrases, severity phrases, intent terms, confidence thresholds, TF-IDF and clustering settings.
+
+### Pipeline usage
+
+```python
+from src.data_loader import load_and_validate_feedback
+from src.pii_detector import mask_dataframe_feedback
+from src.analysis_pipeline import analyze_feedback_dataframe
+
+loaded = load_and_validate_feedback("data/sample_feedback.csv")
+masked = mask_dataframe_feedback(loaded.valid_rows)
+output = analyze_feedback_dataframe(masked)  # requires masked_text column
+```
+
+### Unknown and human-review states
+
+Rows with missing masked text, weak theme evidence, low confidence, or PII review flags receive `requires_human_review=True` and may have `primary_theme=unknown`.
+
+### Phase 4 limitations
+
+- Rule-based sentiment is not production-grade NLP
+- TF-IDF fallback is exploratory, not semantic understanding
+- K-Means clusters are not product themes
+- No theme-level aggregation, evidence quotes, or prioritization yet
+- No Streamlit UI integration
+
+## Known Limitations (Phase 4)
+
+- Analysis quality depends on keyword coverage and masked text quality
+- Hinglish support is limited to configured terms
+- No LLM enhancement or evaluation dashboard yet
+- No persistence, export, or human review workflow
 
 ## Privacy Note
 
@@ -288,8 +355,8 @@ Treat all uploaded customer feedback as potentially sensitive. Phase 1 includes 
 |-------|-------|
 | **1** | Foundation, schemas, synthetic data, tests |
 | **2** | CSV loading, validation, data quality report |
-| **3** (current) | PII detection and masking |
-| **4** | Local analysis engine (sentiment, theme, severity) |
+| **3** | PII detection and masking |
+| **4** (current) | Local analysis engine (sentiment, theme, severity) |
 | **5** | Theme aggregation, evidence, prioritization |
 | **6** | Streamlit dashboard (upload → insights) |
 | **7** | Human review and export |

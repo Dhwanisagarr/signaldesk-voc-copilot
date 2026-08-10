@@ -144,9 +144,10 @@ class TestPlaceholderSchemas:
             feedback_id="FB-001",
             sentiment="negative",
             theme="payment_failure",
+            primary_theme="payment_failure",
             severity="high",
             confidence=0.75,
-            analysis_method="local",
+            analysis_method="local_rule_based",
         )
         assert result.confidence == 0.75
 

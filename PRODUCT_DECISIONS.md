@@ -89,3 +89,39 @@ Context-free numeric patterns (Aadhaar-like groups, card sequences, standalone P
 ### Rating range alignment (Phase 3 fix)
 
 `FeedbackRecord` now matches Phase 2 ingestion: optional ratings must be between **1 and 5**. Zero was removed to keep schema validation consistent with the data-quality layer.
+
+## Phase 4 decisions
+
+### Why local deterministic analysis before LLM integration
+
+A working offline baseline is required for demos, tests, and comparison. Local rules ensure the app functions without API keys and provide an auditable fallback.
+
+### Why masked_text is mandatory
+
+Analysis must never process raw customer text that may contain PII. Phase 4 enforces `masked_text` and rejects direct analysis of `feedback_text`.
+
+### Why keyword rules for known fintech themes
+
+Indian fintech feedback has recurring, well-defined issue types (payments, refunds, KYC, OTP). Keyword and phrase rules are transparent, editable, and return matched terms for evidence traceability.
+
+### Why multiple themes are supported
+
+Real feedback often contains multiple independent problems (e.g. refund delay plus app performance). Forcing a single theme would discard evidence.
+
+### Why TF-IDF is batch-only
+
+TF-IDF requires a document corpus. Fitting on one text is meaningless. Batch-level fallback handles low-confidence keyword results without overriding strong matches.
+
+### Why K-Means is exploratory only
+
+Cluster IDs indicate textual similarity, not validated product themes. Keeping clustering separate from classification prevents unvalidated groups from altering severity or theme labels.
+
+### Why sentiment must not determine severity
+
+A neutral-toned security alert may still be critical. Severity rules inspect financial and security context independently.
+
+### What is deferred to Phase 5
+
+- Theme-level aggregation and counts
+- Evidence-linked quotes and prioritization
+- Human review persistence and export
