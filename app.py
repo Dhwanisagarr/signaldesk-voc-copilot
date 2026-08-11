@@ -8,6 +8,7 @@ import streamlit as st
 from src.config import (
     APP_TITLE,
     EVALUATION_SET_PATH,
+    MAX_UPLOAD_SIZE_BYTES,
     MAX_UPLOAD_SIZE_MB,
     SAMPLE_FEEDBACK_PATH,
     SUPPORTED_REVIEW_STATUSES,
@@ -38,6 +39,7 @@ from src.ui_helpers import (
     apply_masking,
     build_feedback_explorer_dataframe,
     build_mapping_from_selections,
+    clear_review_store,
     clear_session_data,
     count_evidence_warnings,
     count_pii_entity_types,
@@ -56,6 +58,7 @@ from src.ui_helpers import (
     run_analysis_pipeline,
     set_review_status,
     set_reviewer_note,
+    sync_review_store_to_session,
     theme_insights_table_rows,
     try_infer_column_mapping,
     validate_csv_filename,
@@ -70,6 +73,7 @@ NAV_SECTIONS: tuple[str, ...] = (
     "Theme insights",
     "Theme detail",
     "Review",
+    "Export",
     "Limitations & methodology",
 )
 
@@ -88,7 +92,7 @@ def _sidebar_navigation() -> str:
         st.sidebar.success("Session cleared.")
         st.rerun()
     st.sidebar.caption(
-        "Uploaded data and review decisions exist only in this browser session."
+        "Uploaded feedback data remains in browser memory; review decisions and notes are persisted in local SQLite."
     )
     return section
 
@@ -135,7 +139,7 @@ def _render_home() -> None:
     st.info(
         "Workflow: upload a CSV → review mapping → check data quality → "
         "review PII masking → run analysis → explore themes and evidence → "
-        "record in-session review decisions."
+        "record review decisions → export masked reports."
     )
 
 
@@ -143,12 +147,22 @@ def _render_upload_mapping() -> None:
     st.header("Upload & column mapping")
     st.caption(f"CSV only · maximum {MAX_UPLOAD_SIZE_MB} MB · data stays in memory")
 
-    uploaded = st.file_uploader("Upload feedback CSV", type=["csv"])
+    uploaded = st.file_uploader(
+        "Upload feedback CSV",
+        type=["csv"],
+        help=f"CSV files up to {MAX_UPLOAD_SIZE_MB} MB are supported.",
+    )
     if uploaded is not None:
         if not validate_csv_filename(uploaded.name):
             st.error("Only CSV files are supported.")
             return
-        st.session_state[SESSION_UPLOAD_BYTES] = uploaded.getvalue()
+        upload_bytes = uploaded.getvalue()
+        if len(upload_bytes) > MAX_UPLOAD_SIZE_BYTES:
+            st.error(
+                f"Uploaded file exceeds the maximum size limit of {MAX_UPLOAD_SIZE_MB} MB ({MAX_UPLOAD_SIZE_BYTES} bytes)."
+            )
+            return
+        st.session_state[SESSION_UPLOAD_BYTES] = upload_bytes
         st.session_state[SESSION_UPLOAD_NAME] = uploaded.name
         st.session_state[SESSION_LOAD_RESULT] = None
         st.session_state[SESSION_DQ_CONTINUED] = False
@@ -330,8 +344,9 @@ def _render_privacy_masking() -> None:
         """
 **Privacy notes**
 - Analysis and dashboard display use **`masked_text` only** — raw customer text is never displayed in the UI.
+- Uploaded feedback data remains in browser memory for the current session only and is not persisted as raw customer feedback.
+- Review decisions and reviewer notes are persisted locally in SQLite (`outputs/reviews.db`).
 - This prototype does **not** guarantee complete anonymization.
-- Session data is kept **in memory** for the current browser session only.
 """
     )
 
@@ -592,18 +607,23 @@ def _render_theme_detail() -> None:
 
 def _render_review() -> None:
     st.header("Review")
-    st.warning("Review decisions are stored only for the current browser session.")
+    st.caption("Review decisions are stored locally for this single-user prototype.")
 
     insights = st.session_state.get(SESSION_THEME_INSIGHTS)
     if not st.session_state.get(SESSION_ANALYSIS_COMPLETE) or not insights:
         st.info("Run analysis first to review theme insights.")
         return
 
-    if st.button("Reset all review states"):
-        st.session_state[SESSION_REVIEW_STATUSES] = {}
-        st.session_state[SESSION_REVIEWER_NOTES] = {}
-        st.success("Review state reset.")
-        st.rerun()
+    with st.expander("Review database administration"):
+        confirm_clear = st.checkbox(
+            "I confirm I want to clear all stored review decisions from SQLite database",
+            value=False,
+        )
+        if st.button("Reset all review states", disabled=not confirm_clear):
+            if confirm_clear:
+                clear_review_store(st.session_state)
+                st.success("Review database cleared.")
+                st.rerun()
 
     for insight in insights:
         theme = insight.theme_name
@@ -625,7 +645,79 @@ def _render_review() -> None:
             if st.button("Save review", key=f"save_review_{theme}"):
                 set_review_status(st.session_state, theme, new_status)
                 set_reviewer_note(st.session_state, theme, note)
-                st.success("Saved in session (does not modify analysis output).")
+                st.success("Saved locally to SQLite database.")
+
+
+def _render_export() -> None:
+    st.header("Export reports")
+    st.info("Exports contain masked text only.")
+
+    if not st.session_state.get(SESSION_ANALYSIS_COMPLETE):
+        st.warning("Run analysis from **Privacy & masking** first to generate exportable reports.")
+        return
+
+    analysis = st.session_state.get(SESSION_ANALYSIS)
+    insights = st.session_state.get(SESSION_THEME_INSIGHTS)
+    masked_df = st.session_state.get(SESSION_MASKED_DF)
+    aggregation = st.session_state.get(SESSION_AGGREGATION)
+
+    if not analysis or not insights or masked_df is None:
+        st.warning("No analyzed results available to export.")
+        return
+
+    from src.review_store import get_all_review_decisions
+    review_decisions = get_all_review_decisions()
+
+    from src.export import (
+        ExportPrivacyError,
+        export_analyzed_records_csv,
+        export_markdown_report,
+        export_theme_insights_csv,
+        export_theme_insights_json,
+    )
+
+    st.subheader("Available Export Formats")
+
+    try:
+        records_csv = export_analyzed_records_csv(analysis, masked_df, review_decisions)
+        theme_csv = export_theme_insights_csv(insights, review_decisions)
+        theme_json = export_theme_insights_json(insights, aggregation, review_decisions)
+        markdown_doc = export_markdown_report(insights, analysis, masked_df, aggregation, review_decisions)
+    except ExportPrivacyError as exc:
+        st.error(f"Export rejected due to privacy validation failure: {exc}")
+        return
+
+    col1, col2 = st.columns(2)
+    with col1:
+        st.download_button(
+            "Download masked analysed records (CSV)",
+            data=records_csv,
+            file_name="analyzed_records_masked.csv",
+            mime="text/csv",
+            use_container_width=True,
+        )
+        st.download_button(
+            "Download masked theme insights (CSV)",
+            data=theme_csv,
+            file_name="theme_insights_masked.csv",
+            mime="text/csv",
+            use_container_width=True,
+        )
+    with col2:
+        st.download_button(
+            "Download masked theme insights (JSON)",
+            data=theme_json,
+            file_name="theme_insights_masked.json",
+            mime="application/json",
+            use_container_width=True,
+        )
+        st.download_button(
+            "Download executive report (Markdown .md)",
+            data=markdown_doc,
+            file_name="voc_executive_report_masked.md",
+            mime="text/markdown",
+            use_container_width=True,
+        )
 
 
 def _render_methodology() -> None:
@@ -641,6 +733,8 @@ def _render_methodology() -> None:
 - **Evidence-linked masked quotes** validated as exact excerpts
 - **Transparent prioritization** with visible component scores
 - **Unknown** and **human-review** states when confidence is low
+- **SQLite review persistence** for human review decisions and notes
+- **Masked-text-only exports** in CSV, JSON, and Markdown formats
 
 ### Limitations
 - Synthetic sample data only — not representative of all customers
@@ -649,10 +743,10 @@ def _render_methodology() -> None:
 - No statistical proof of customer demand or confirmed business impact
 - Masking is regex-based and may miss or over-mask edge cases
 - Root causes and suggested actions are deterministic templates requiring PM validation
-- Review decisions and uploads are **session-only** — not persisted
+- Single-user prototype — local SQLite database storage
 
-### Deferred (Phase 7+)
-- SQLite persistence, exports (CSV/JSON/PDF), evaluation dashboard, optional LLM layer
+### Deferred (Future)
+- PDF/Excel exports, evaluation dashboard, optional LLM layer, multi-user authentication
 """
     )
 
@@ -660,6 +754,7 @@ def _render_methodology() -> None:
 def main() -> None:
     _configure_page()
     init_session_state(st.session_state)
+    sync_review_store_to_session(st.session_state)
     section = _sidebar_navigation()
 
     renderers = {
@@ -671,6 +766,7 @@ def main() -> None:
         "Theme insights": _render_theme_insights,
         "Theme detail": _render_theme_detail,
         "Review": _render_review,
+        "Export": _render_export,
         "Limitations & methodology": _render_methodology,
     }
     renderers[section]()

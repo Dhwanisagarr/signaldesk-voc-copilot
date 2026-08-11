@@ -301,6 +301,16 @@ INTENT_PRAISE_TERMS: tuple[str, ...] = ("thank", "helpful", "resolved", "love th
 INTENT_QUESTION_TERMS: tuple[str, ...] = ("how do i", "why was", "what is", "when will", "?")
 INTENT_REQUEST_TERMS: tuple[str, ...] = ("please add", "would like", "please provide", "add option")
 INTENT_BUG_TERMS: tuple[str, ...] = ("crash", "crashes", "freeze", "freezes", "bug", "not working")
+INTENT_NEGATION_PHRASES: tuple[str, ...] = (
+    "unhelpful",
+    "not helpful",
+    "not good",
+    "never worked",
+    "couldn't resolve",
+    "could not resolve",
+    "still pending",
+    "failed again",
+)
 
 # ---------------------------------------------------------------------------
 # Product areas

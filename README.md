@@ -2,7 +2,7 @@
 
 A CSV-first, evidence-focused product that helps product managers analyze customer feedback and convert it into source-linked product insights.
 
-**The current repository contains Phases 1–6: foundation through the Streamlit dashboard. LLM integration, persistent review storage, and exports are not yet implemented.**
+**The current repository contains Phases 1–7: foundation through persistent human review and safe masked exports. LLM integration and evaluation module are deferred.**
 
 ---
 
@@ -14,9 +14,21 @@ Product managers, founders, product operations managers, and customer-support ma
 
 Synthetic Indian fintech customer feedback covering payments, refunds, KYC, authentication, fees, support, performance, usability, and security topics.
 
+## Phase 7 Status
+
+Phase 7 adds local SQLite review persistence and privacy-safe masked exports:
+
+- **SQLite Review Persistence** — Human review statuses (`pending`, `approved`, `rejected`, `needs_more_evidence`) and reviewer notes are stored locally in `outputs/reviews.db` across app restarts. Only metadata is stored—no customer feedback, original text, or raw PII is ever written to disk.
+- **Privacy-Enforced Exports** — Pre-export validation verifies that `original_text`, raw `feedback_text`, or unmasked PII patterns are not present before generating exports.
+- **Export Formats:**
+  1. Masked Analysed Records CSV (`analyzed_records_masked.csv`)
+  2. Masked Theme Insights CSV (`theme_insights_masked.csv`)
+  3. Masked Theme Insights JSON (`theme_insights_masked.json`)
+  4. Executive Markdown Report (`voc_executive_report_masked.md`)
+
 ## Phase 6 Status
 
-Phase 6 adds a Streamlit dashboard with an end-to-end in-memory workflow:
+Phase 6 adds a Streamlit dashboard with an end-to-end user workflow across 10 sections:
 
 - **Home** — product overview, sample CSV downloads, prototype disclaimer
 - **Upload & mapping** — CSV upload, inferred or manual column mapping
@@ -25,99 +37,81 @@ Phase 6 adds a Streamlit dashboard with an end-to-end in-memory workflow:
 - **Feedback explorer** — filterable analysis table with masked-text detail
 - **Theme insights** — priority-sorted themes with evidence warnings
 - **Theme detail** — distributions, validated quotes, priority components
-- **Review** — in-session approve / reject / needs-more-evidence + notes
+- **Review** — local SQLite-backed approval / rejection / notes management
+- **Export** — masked report downloads (CSV, JSON, Markdown)
 - **Limitations & methodology** — transparent design documentation
 
-**Not yet implemented:** SQLite persistence, exports, LLM integration, evaluation dashboard.
+## Database Location & Management
 
-## Running the dashboard
+- **File location:** `outputs/reviews.db` (gitignored).
+- **Single-user prototype:** Local storage for a single-user workflow.
+- **Clearing decisions:** Use the **Review database administration** expander in the Review section (requires explicit checkbox confirmation), or delete the file `outputs/reviews.db` directly.
 
-```bash
-python -m venv .venv
-source .venv/bin/activate   # Windows: .venv\Scripts\activate
-pip install -r requirements.txt
-streamlit run app.py
-```
+## Export Policy & Privacy
 
-Open the URL shown in the terminal (typically `http://localhost:8501`).
+Exports contain **masked text only**. Every export run executes pre-export privacy checks (`validate_export_privacy`). If forbidden fields (`original_text`, `feedback_text`) or unmasked PII patterns are detected, the export is rejected with a clear error.
 
-### User workflow
+*Disclaimer included in all exports:*
+> "Results describe patterns in the uploaded dataset only. Suggested actions are prototype outputs and require product-manager validation."
 
-1. Download the sample CSV from **Home** (optional).
-2. Upload a CSV in **Upload & mapping** and confirm column mapping.
-3. Review the **Data quality** report and continue with valid rows.
-4. Review **Privacy & masking** summary (masked text preview).
-5. Click **Run local analysis**.
-6. Explore records in **Feedback explorer**.
-7. Review **Theme insights** and **Theme detail** (quotes, priority components).
-8. Record in-session review decisions in **Review**.
-9. Use **Clear session data** in the sidebar to reset.
-
-### Session-only storage
-
-Uploaded CSV data, masked text, analysis results, and review decisions are stored in **Streamlit session state** for the current browser session only. Nothing is written to disk under `outputs/` or the repository.
-
-### Privacy limitations
-
-- Analysis and dashboard display use `masked_text` only (raw customer text is never displayed in the dashboard UI).
-- Regex masking does not guarantee complete anonymization.
-- Error messages avoid exposing customer text.
-
-## Phase 5 Status
-
-Phase 5 adds theme-level aggregation, evidence validation, and transparent prioritization:
-
-- **Theme aggregation** from Phase 4 analysis results with separate primary, secondary, and mention counts
-- **Evidence-linked masked quotes** validated against `masked_text` only (never `original_text`)
-- **Evidence strength** heuristic (weak / moderate / strong) with supporting feedback IDs
-- **Prototype prioritization score** with transparent components (`frequency × severity × confidence`)
-- Deterministic templates for possible root causes and suggested actions (require PM validation)
-
-**Implemented in library modules; dashboard in Phase 6.**
-
-## Phase 4 Status
-
-Phase 4 adds a local, deterministic analysis engine:
-
-- Rule-based sentiment analysis (positive, negative, neutral, mixed, unknown)
-- Keyword/phrase theme classification with primary and secondary themes
-- Dataset-level TF-IDF fallback for low-confidence records
-- Exploratory K-Means clustering (metadata only — does not alter classifications)
-- Severity and intent rules independent from sentiment
-- Batch pipeline requiring **`masked_text`** only (never raw `original_text`)
-
-## Synthetic Data Notice
-
-**All feedback in this repository is synthetic.** It was created for demonstration and testing only. It does not represent real customers, real transactions, or real business outcomes. Do not treat sample outputs as evidence of product performance.
-
-## Current Scope (Phase 6)
+## Current Scope (Phase 7)
 
 | Included | Not included |
 |----------|--------------|
-| Phases 1–5 (foundation through prioritization) | SQLite / persistent storage |
-| Streamlit dashboard with 9 sections | Export reports (CSV, JSON, PDF) |
-| In-memory review workflow | LLM / external API integration |
-| CSV upload, mapping, data quality, masking UI | Multi-user collaboration |
-| Feedback explorer with filters and search | Evaluation dashboard UI |
-| Theme insights, detail, evidence quotes | Automatic data collection |
-| Session-only data handling | |
-| `src/ui_helpers.py` + Phase 1–6 pytest suites | |
-
-## Future Scope
-
-- SQLite persistence for human review
-- Export to CSV, JSON, and Markdown
-- Optional LLM provider with deterministic fallback
-- Evaluation dashboard with accuracy metrics
-- PDF export
+| Phases 1–6 (foundation through dashboard) | Cloud database persistence |
+| SQLite review persistence (`outputs/reviews.db`) | PDF / Excel exports |
+| Masked exports (CSV, JSON, Markdown) | LLM / external API integration |
+| Pre-export PII and original-text validation | Multi-user authentication & collaboration |
+| Streamlit dashboard with 10 sections | Evaluation dashboard UI |
+| Comprehensive pytest suites (259 passing tests) | Automatic data collection |
 
 ## Project Structure
 
 ```
 signaldesk-voc-copilot/
-├── app.py                  # Streamlit dashboard (Phase 6)
+├── app.py                  # Streamlit dashboard (Phase 6–7)
 ├── requirements.txt
 ├── pytest.ini
+├── .env.example
+├── README.md
+├── PRODUCT_DECISIONS.md
+├── LICENSE
+├── data/
+│   ├── sample_feedback.csv
+│   └── evaluation_set.csv
+├── src/
+│   ├── __init__.py
+│   ├── config.py
+│   ├── schemas.py
+│   ├── data_loader.py
+│   ├── cleaner.py
+│   ├── pii_detector.py
+│   ├── analysis_config.py
+│   ├── sentiment.py
+│   ├── theme_classifier.py
+│   ├── clustering.py
+│   ├── analysis_pipeline.py
+│   ├── evidence.py
+│   ├── prioritization.py
+│   ├── review_store.py     # SQLite persistence for human review
+│   ├── export.py           # Masked CSV, JSON, Markdown exports & privacy validation
+│   └── ui_helpers.py       # Dashboard formatting, review sync, and session helpers
+├── tests/
+│   ├── test_phase1.py
+│   ├── test_data_loader.py
+│   ├── test_cleaner.py
+│   ├── test_pii_detector.py
+│   ├── test_sentiment.py
+│   ├── test_theme_classifier.py
+│   ├── test_clustering.py
+│   ├── test_analysis_pipeline.py
+│   ├── test_evidence.py
+│   ├── test_prioritization.py
+│   ├── test_review_store.py # SQLite store unit tests
+│   ├── test_export.py       # Masked export unit tests
+│   └── test_ui_helpers.py
+└── outputs/                # Generated exports & reviews.db (gitignored)
+```
 ├── .env.example
 ├── README.md
 ├── PRODUCT_DECISIONS.md

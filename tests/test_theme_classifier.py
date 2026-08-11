@@ -152,6 +152,22 @@ class TestIntentAndSeverity:
         assert determine_intent("please add dark mode", "complaint") == "request"
         assert determine_intent("thank you for resolving this", "complaint") == "praise"
 
+    def test_intent_negation_and_word_boundary_rules(self) -> None:
+        # Problematic case from requirements: "helpful" inside "unhelpful" must NOT be praise
+        assert (
+            determine_intent(
+                "refund delay plus unhelpful support ticket response.", "complaint"
+            )
+            == "complaint"
+        )
+        assert determine_intent("this agent was unhelpful", "complaint") == "complaint"
+        assert determine_intent("service is not helpful", "complaint") == "complaint"
+        assert determine_intent("app is not good", "complaint") == "complaint"
+        assert determine_intent("payment never worked", "complaint") == "complaint"
+        assert determine_intent("support couldn't resolve issue", "complaint") == "complaint"
+        assert determine_intent("refund is still pending", "complaint") == "complaint"
+        assert determine_intent("transaction failed again", "complaint") == "complaint"
+
     def test_severity_independent_from_sentiment(self) -> None:
         text = "Convenient app overall, but unauthorized transaction alert appeared."
         assert determine_severity(text.lower(), "low") == "critical"

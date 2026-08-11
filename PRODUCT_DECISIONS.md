@@ -189,10 +189,34 @@ To eliminate the risk of accidental exposure of raw customer feedback (which may
 
 PMs must understand why one theme ranks above another. The Theme detail section surfaces `frequency_score`, `severity_score`, and `confidence_score` alongside the prototype disclaimer.
 
-### What is deferred to Phase 7
+### What is deferred to Phase 8+
 
-- SQLite persistence for review decisions
-- Export to CSV, JSON, and Markdown
 - Evaluation dashboard UI
 - Optional LLM layer
 - PDF export
+
+## Phase 7 decisions
+
+### Why SQLite was selected
+
+SQLite is built into Python's standard library (`sqlite3`), enabling simple, zero-dependency local database persistence without requiring server setup, cloud credentials, or external ORM packages for a single-user prototype.
+
+### Why only review metadata is persisted
+
+Uploaded customer feedback text should not be permanently stored on local disk without explicit data retention policies. Persisting only human review decisions (`theme_name`, `status`, `reviewer_note`, timestamps) allows PMs to preserve review progress across app restarts without exposing raw feedback to local disk storage.
+
+### Why original_text is never persisted or exported
+
+Raw customer text may contain undetected PII or sensitive personal information. Keeping `original_text` in-memory only and excluding it from the SQLite database and all export formats guarantees that persistent assets and exported files remain safe to share.
+
+### Why exports contain masked text only
+
+Exported reports (CSV, JSON, Markdown) are intended to be shared with engineering, operations, or leadership. Enforcing `masked_text` and running pre-export privacy validation (`validate_export_privacy`) ensures no unmasked emails, phone numbers, or UPI IDs are leaked into export deliverables.
+
+### What was intentionally not built (Phase 7)
+
+- Authentication and multi-user collaboration
+- Cloud database connectors (PostgreSQL/BigQuery)
+- PDF and Excel export formats
+- Evaluation dashboard and accuracy metrics
+- AI/LLM text generation

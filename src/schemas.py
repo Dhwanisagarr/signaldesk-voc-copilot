@@ -401,4 +401,23 @@ class PIIDetectionResult(BaseModel):
     review_required: bool = False
 
 
+class ReviewDecisionRecord(BaseModel):
+    """Stored human review decision for a theme."""
+
+    theme_name: str
+    status: str = "pending"
+    reviewer_note: str = ""
+    created_at: str = ""
+    updated_at: str = ""
+
+    @field_validator("status")
+    @classmethod
+    def validate_status(cls, value: str) -> str:
+        if value not in SUPPORTED_REVIEW_STATUSES:
+            raise ValueError(
+                f"Invalid review status: '{value}'. Allowed: {SUPPORTED_REVIEW_STATUSES}"
+            )
+        return value
+
+
 ThemeInsight.model_rebuild()

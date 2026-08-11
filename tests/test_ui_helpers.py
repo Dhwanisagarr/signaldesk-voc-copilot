@@ -18,6 +18,8 @@ from src.ui_helpers import (
     filter_feedback_explorer,
     format_review_status_label,
     format_theme_label,
+    get_review_status,
+    get_reviewer_note,
     get_safe_feedback_text,
     init_session_state,
     insight_display_warnings,
@@ -25,6 +27,8 @@ from src.ui_helpers import (
     priority_disclaimer,
     run_analysis_pipeline,
     set_review_status,
+    set_reviewer_note,
+    sync_review_store_to_session,
     theme_insights_table_rows,
     try_infer_column_mapping,
     validate_csv_filename,
@@ -165,11 +169,52 @@ class TestThemeInsightsTable:
 
 
 class TestReviewHelpers:
-    def test_set_review_status(self) -> None:
+    def test_set_review_status(self, tmp_path) -> None:
+        db_file = tmp_path / "reviews.db"
         session: dict = {}
         init_session_state(session)
-        set_review_status(session, "refund_delay", "approved")
+        set_review_status(session, "refund_delay", "approved", db_path=db_file)
         assert session["review_statuses"]["refund_delay"] == "approved"
+
+    def test_review_decisions_reload_from_sqlite(self, tmp_path) -> None:
+        db_file = tmp_path / "reviews.db"
+        session1: dict = {}
+        init_session_state(session1)
+        set_review_status(session1, "kyc_problem", "rejected", db_path=db_file)
+        set_reviewer_note(session1, "kyc_problem", "Note for KYC", db_path=db_file)
+
+        session2: dict = {}
+        init_session_state(session2)
+        sync_review_store_to_session(session2, db_path=db_file)
+        assert get_review_status(session2, "kyc_problem", db_path=db_file) == "rejected"
+        assert get_reviewer_note(session2, "kyc_problem", db_path=db_file) == "Note for KYC"
+
+    def test_clearing_session_data_does_not_delete_sqlite_db(self, tmp_path) -> None:
+        db_file = tmp_path / "reviews.db"
+        session: dict = {}
+        init_session_state(session)
+        set_review_status(session, "fees", "approved", db_path=db_file)
+
+        # Clear session data (browser reset)
+        clear_session_data(session)
+        assert session["review_statuses"] == {}
+
+        # Re-sync from SQLite DB
+        sync_review_store_to_session(session, db_path=db_file)
+        assert get_review_status(session, "fees", db_path=db_file) == "approved"
+
+    def test_clear_review_store_explicit_call(self, tmp_path) -> None:
+        db_file = tmp_path / "reviews.db"
+        session: dict = {}
+        init_session_state(session)
+        set_review_status(session, "fees", "approved", db_path=db_file)
+
+        from src.ui_helpers import clear_review_store
+
+        cleared_count = clear_review_store(session, db_path=db_file)
+        assert cleared_count == 1
+        assert session["review_statuses"] == {}
+        assert get_review_status(session, "fees", db_path=db_file) == "pending"
 
 
 class TestPipelineIntegration:

@@ -396,28 +396,78 @@ def run_analysis_pipeline(masked_df: pd.DataFrame) -> PipelineBundle:
     )
 
 
-def get_review_status(session_state: Any, theme_name: str) -> str:
-    """Return the in-memory review status for a theme."""
+from src.review_store import (
+    clear_review_decisions,
+    delete_review_decision,
+    get_all_review_decisions,
+    get_review_decision,
+    save_review_decision,
+)
+
+
+def sync_review_store_to_session(session_state: Any, db_path: Any = None) -> None:
+    """Synchronize saved SQLite review decisions into Streamlit session state."""
+    all_decisions = get_all_review_decisions(db_path)
+    statuses = session_state.setdefault(SESSION_REVIEW_STATUSES, {})
+    notes = session_state.setdefault(SESSION_REVIEWER_NOTES, {})
+
+    for theme_name, decision in all_decisions.items():
+        statuses[theme_name] = decision["status"]
+        notes[theme_name] = decision["reviewer_note"]
+
+
+def get_review_status(session_state: Any, theme_name: str, db_path: Any = None) -> str:
+    """Return the review status for a theme from session state or SQLite."""
     statuses: dict[str, str] = session_state.get(SESSION_REVIEW_STATUSES, {})
-    return statuses.get(theme_name, "pending")
+    if theme_name in statuses:
+        return statuses[theme_name]
+    decision = get_review_decision(db_path, theme_name)
+    if decision:
+        status = decision["status"]
+        statuses[theme_name] = status
+        return status
+    return "pending"
 
 
-def set_review_status(session_state: Any, theme_name: str, status: str) -> None:
-    """Set in-memory review status after validation."""
+def set_review_status(
+    session_state: Any, theme_name: str, status: str, db_path: Any = None
+) -> None:
+    """Set and persist review status in SQLite and session state."""
     if status not in SUPPORTED_REVIEW_STATUSES:
         raise ValueError(f"Invalid review status: {status}")
+    note = get_reviewer_note(session_state, theme_name, db_path)
+    save_review_decision(db_path, theme_name, status, note)
     session_state.setdefault(SESSION_REVIEW_STATUSES, {})[theme_name] = status
 
 
-def get_reviewer_note(session_state: Any, theme_name: str) -> str:
-    """Return the in-memory reviewer note for a theme."""
+def get_reviewer_note(session_state: Any, theme_name: str, db_path: Any = None) -> str:
+    """Return the reviewer note for a theme from session state or SQLite."""
     notes: dict[str, str] = session_state.get(SESSION_REVIEWER_NOTES, {})
-    return notes.get(theme_name, "")
+    if theme_name in notes:
+        return notes[theme_name]
+    decision = get_review_decision(db_path, theme_name)
+    if decision:
+        note = decision["reviewer_note"]
+        notes[theme_name] = note
+        return note
+    return ""
 
 
-def set_reviewer_note(session_state: Any, theme_name: str, note: str) -> None:
-    """Store an in-memory reviewer note."""
+def set_reviewer_note(
+    session_state: Any, theme_name: str, note: str, db_path: Any = None
+) -> None:
+    """Store and persist a reviewer note in SQLite and session state."""
+    status = get_review_status(session_state, theme_name, db_path)
+    save_review_decision(db_path, theme_name, status, note)
     session_state.setdefault(SESSION_REVIEWER_NOTES, {})[theme_name] = note
+
+
+def clear_review_store(session_state: Any, db_path: Any = None) -> int:
+    """Clear all review decisions from SQLite database and session state."""
+    count = clear_review_decisions(db_path)
+    session_state[SESSION_REVIEW_STATUSES] = {}
+    session_state[SESSION_REVIEWER_NOTES] = {}
+    return count
 
 
 def load_uploaded_feedback(

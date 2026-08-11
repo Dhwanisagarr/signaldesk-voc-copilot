@@ -9,8 +9,10 @@ import pandas as pd
 from sklearn.feature_extraction.text import TfidfVectorizer
 from sklearn.metrics.pairwise import cosine_similarity
 
+import re
 from src.analysis_config import (
     INTENT_BUG_TERMS,
+    INTENT_NEGATION_PHRASES,
     INTENT_PRAISE_TERMS,
     INTENT_QUESTION_TERMS,
     INTENT_REQUEST_TERMS,
@@ -103,19 +105,38 @@ def determine_severity(text_lower: str, default_severity: str) -> str:
     return default_severity
 
 
+def _matches_word_or_phrase(term: str, text: str) -> bool:
+    """Return True if term matches as a complete word/phrase in text."""
+    if not term:
+        return False
+    if not any(c.isalnum() for c in term):
+        return term in text
+    pattern = r"(?<![a-zA-Z0-9_])" + re.escape(term) + r"(?![a-zA-Z0-9_])"
+    return bool(re.search(pattern, text))
+
+
 def determine_intent(text_lower: str, default_intent: str) -> str:
-    """Determine intent using centralized keyword rules."""
-    if any(term in text_lower for term in INTENT_PRAISE_TERMS):
-        return "praise"
-    if any(term in text_lower for term in INTENT_REQUEST_TERMS):
+    """Determine intent using centralized keyword rules, word-boundary matching, and negation precedence."""
+    has_negation = any(phrase in text_lower for phrase in INTENT_NEGATION_PHRASES)
+
+    # Explicit negative phrases take precedence over positive keywords
+    if not has_negation:
+        if any(_matches_word_or_phrase(term, text_lower) for term in INTENT_PRAISE_TERMS):
+            return "praise"
+
+    if any(_matches_word_or_phrase(term, text_lower) for term in INTENT_REQUEST_TERMS):
         return "request"
-    if any(term in text_lower for term in INTENT_QUESTION_TERMS):
+    if any(_matches_word_or_phrase(term, text_lower) for term in INTENT_QUESTION_TERMS):
         return "question"
-    if any(term in text_lower for term in INTENT_BUG_TERMS):
+    if any(_matches_word_or_phrase(term, text_lower) for term in INTENT_BUG_TERMS):
         return "bug_report"
+
     if default_intent in {"complaint", "praise", "request", "bug_report", "question"}:
+        if has_negation and default_intent == "praise":
+            return "complaint"
         return default_intent
-    return "complaint" if any(term in text_lower for term in ("failed", "delay", "unable", "not")) else "unknown"
+
+    return "complaint" if (has_negation or any(term in text_lower for term in ("failed", "delay", "unable", "not"))) else "unknown"
 
 
 def severity_to_score(severity: str) -> float:

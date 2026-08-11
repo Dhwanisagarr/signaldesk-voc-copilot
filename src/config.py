@@ -11,6 +11,7 @@ ENVIRONMENT: str = "development"
 PROJECT_ROOT: Path = Path(__file__).resolve().parent.parent
 DATA_DIR: Path = PROJECT_ROOT / "data"
 OUTPUTS_DIR: Path = PROJECT_ROOT / "outputs"
+DEFAULT_DB_PATH: Path = OUTPUTS_DIR / "reviews.db"
 SAMPLE_FEEDBACK_PATH: Path = DATA_DIR / "sample_feedback.csv"
 EVALUATION_SET_PATH: Path = DATA_DIR / "evaluation_set.csv"
 
