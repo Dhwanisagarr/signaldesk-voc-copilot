@@ -98,15 +98,15 @@ class TestSafeText:
         )
         assert get_safe_feedback_text(row) == "Payment failed [EMAIL_REDACTED]"
 
-    def test_original_when_no_pii_and_not_prefer_masked(self) -> None:
+    def test_never_returns_original_text_even_if_no_pii(self) -> None:
         row = pd.Series(
             {
-                "masked_text": "Refund is slow",
-                "feedback_text": "Refund is slow",
+                "masked_text": "Refund is slow [MASKED]",
+                "feedback_text": "Refund is slow raw text user@example.com",
                 "pii_detected": False,
             }
         )
-        assert get_safe_feedback_text(row, prefer_masked=False) == "Refund is slow"
+        assert get_safe_feedback_text(row, prefer_masked=False) == "Refund is slow [MASKED]"
 
 
 class TestFeedbackExplorer:

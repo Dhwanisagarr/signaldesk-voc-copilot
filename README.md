@@ -46,7 +46,7 @@ Open the URL shown in the terminal (typically `http://localhost:8501`).
 1. Download the sample CSV from **Home** (optional).
 2. Upload a CSV in **Upload & mapping** and confirm column mapping.
 3. Review the **Data quality** report and continue with valid rows.
-4. Review **Privacy & masking** summary (masked text by default).
+4. Review **Privacy & masking** summary (masked text preview).
 5. Click **Run local analysis**.
 6. Explore records in **Feedback explorer**.
 7. Review **Theme insights** and **Theme detail** (quotes, priority components).
@@ -59,7 +59,7 @@ Uploaded CSV data, masked text, analysis results, and review decisions are store
 
 ### Privacy limitations
 
-- Analysis uses `masked_text` only; the dashboard prefers masked text when PII is detected.
+- Analysis and dashboard display use `masked_text` only (raw customer text is never displayed in the dashboard UI).
 - Regex masking does not guarantee complete anonymization.
 - Error messages avoid exposing customer text.
 

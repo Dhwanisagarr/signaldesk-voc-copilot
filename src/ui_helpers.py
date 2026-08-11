@@ -198,15 +198,11 @@ def pii_summary_metrics(masked_df: pd.DataFrame) -> dict[str, int]:
 
 
 def get_safe_feedback_text(row: pd.Series, *, prefer_masked: bool = True) -> str:
-    """Return masked text by default; original only when no PII was detected."""
+    """Return masked_text only; never expose raw or original feedback text."""
     masked = row.get("masked_text")
-    if prefer_masked and isinstance(masked, str) and masked.strip():
+    if isinstance(masked, str):
         return masked
-    pii_detected = bool(row.get("pii_detected", False))
-    if pii_detected:
-        return str(masked) if masked is not None else ""
-    original = row.get("feedback_text") or row.get("original_text")
-    return str(original) if original is not None else ""
+    return str(masked) if masked is not None else ""
 
 
 def _secondary_themes_string(result: AnalysisResult) -> str:

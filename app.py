@@ -329,14 +329,12 @@ def _render_privacy_masking() -> None:
     st.markdown(
         """
 **Privacy notes**
-- Analysis uses **`masked_text` only** — raw text is not sent externally.
+- Analysis and dashboard display use **`masked_text` only** — raw customer text is never displayed in the UI.
 - This prototype does **not** guarantee complete anonymization.
 - Session data is kept **in memory** for the current browser session only.
-- Prefer masked text when PII is detected.
 """
     )
 
-    show_masked_only = st.toggle("Show masked text only (recommended)", value=True)
     with st.expander("Sample masked records (safe fields)"):
         display_cols = [
             col
@@ -346,15 +344,9 @@ def _render_privacy_masking() -> None:
         sample = masked_df[display_cols].head(10) if display_cols else masked_df.head(10)
         st.dataframe(sample, use_container_width=True, hide_index=True)
 
-        if not show_masked_only:
-            st.caption("Original text shown only for rows without detected PII.")
-            for _, row in masked_df.head(5).iterrows():
-                if not row.get("pii_detected", False):
-                    st.text(f"{row.get('feedback_id')}: {row.get('feedback_text', '')[:200]}")
-        else:
-            st.caption("Masked text preview:")
-            for _, row in masked_df.head(5).iterrows():
-                st.text(f"{row.get('feedback_id')}: {str(row.get('masked_text', ''))[:200]}")
+        st.caption("Masked text preview:")
+        for _, row in masked_df.head(5).iterrows():
+            st.text(f"{row.get('feedback_id')}: {str(row.get('masked_text', ''))[:200]}")
 
     st.divider()
     st.subheader("Run analysis")

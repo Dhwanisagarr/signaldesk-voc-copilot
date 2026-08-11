@@ -181,9 +181,9 @@ Persistent storage (SQLite, cloud) adds complexity and security review overhead 
 
 Uploaded customer feedback should not be written to disk without explicit retention policies. Phase 7 will add opt-in persistence with appropriate safeguards.
 
-### Why masked text is shown by default
+### Why masked text is strictly enforced in the UI
 
-When PII is detected, the dashboard defaults to masked text to reduce accidental exposure in previews and record detail. Original text is shown only when no PII was detected and the user disables the masked-only toggle.
+To eliminate the risk of accidental exposure of raw customer feedback (which may contain undetected PII or sensitive personal information), the dashboard strictly enforces `masked_text` across all views. Original text is never displayed in the UI, even when no PII was detected.
 
 ### Why priority score components are visible
 
