@@ -491,3 +491,24 @@ def optional_internal_fields() -> list[str]:
 def priority_disclaimer() -> str:
     """Return the standard prioritization disclaimer."""
     return PRIORITY_SCORE_WARNING
+
+
+def map_impact_level(insight: ThemeInsight) -> str:
+    """Map theme severity distribution and rating to High/Medium/Low impact label."""
+    sev_dist = insight.severity_distribution or {}
+    if (
+        sev_dist.get("critical", 0) > 0
+        or sev_dist.get("high", 0) > 0
+        or (insight.average_rating is not None and insight.average_rating <= 2.5)
+    ):
+        return "High"
+    if sev_dist.get("medium", 0) > 0:
+        return "Medium"
+    return "Low"
+
+
+def map_evidence_label(insight: ThemeInsight) -> str:
+    """Return Title-cased evidence strength label (Strong/Moderate/Weak)."""
+    strength = getattr(insight, "evidence_strength", "weak")
+    return str(strength).capitalize()
+

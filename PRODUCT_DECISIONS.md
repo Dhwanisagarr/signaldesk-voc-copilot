@@ -220,3 +220,30 @@ Exported reports (CSV, JSON, Markdown) are intended to be shared with engineerin
 - PDF and Excel export formats
 - Evaluation dashboard and accuracy metrics
 - AI/LLM text generation
+
+## Phase 8A decisions
+
+### Why the UI was redesigned around product positioning
+
+SignalDesk answers one key question: *"What are my customers struggling with, why does it matter, and what should I look at next?"* The Phase 6 prototype exposed technical concepts (TF-IDF, K-Means, raw confidence formulas, `priority_score = 0.0231`) as primary UI elements. Reorganizing the UI around product concepts ("Customers Affected", "Impact: High/Medium/Low", "Evidence: Strong/Moderate/Weak") positions SignalDesk as a product copilot backed by customer evidence, hiding algorithmic calculations behind "How SignalDesk calculated this" expanders.
+
+### Why 7 dedicated product pages were created
+
+Navigation was simplified into a 7-page product workflow (`pages/`):
+1. **Home (`app.py`)**: "Good morning, [User]...", summary KPIs, and "What needs your attention?" issue cards.
+2. **Analyze (`pages/01_Analyze.py`)**: Drop upload, concise quality summary, and friendly progress status runner.
+3. **Insights (`pages/02_Insights.py`)**: Ranked customer issues table and comprehensive issue detail view.
+4. **Feedback (`pages/03_Feedback.py`)**: Dedicated feedback explorer with multi-filters and individual quote cards.
+5. **Review (`pages/04_Review.py`)**: Product-oriented review decision workspace with local SQLite persistence.
+6. **Export (`pages/05_Export.py`)**: Executive report, CSV, JSON, and Markdown downloads with clear privacy guarantees.
+7. **About (`pages/06_About.py`)**: Product overview, high-level methodology, limitations, and contact details.
+
+### Why raw priority scores are hidden by default
+
+Product Managers care about relative customer impact and evidence strength, not raw floating-point score values. Abstracting raw priority scores into categorical Impact (`High`, `Medium`, `Low`) and Evidence (`Strong`, `Moderate`, `Weak`) levels prevents confusion while keeping exact formulas auditable inside dedicated expanders.
+
+### Why a Linear + Notion B2B SaaS theme was selected
+
+Default Streamlit dashboards can look like internal data tools. Applying a restrained slate color system via `.streamlit/config.toml` (`#2563EB` primary, `#FFFFFF` background, `#F8FAFC` secondary, `#0F172A` text), generous whitespace, subtle card borders, and clear typographic hierarchy delivers a clean, modern SaaS analytics feel.
+
+

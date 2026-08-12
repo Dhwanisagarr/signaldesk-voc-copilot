@@ -2,7 +2,7 @@
 
 A CSV-first, evidence-focused product that helps product managers analyze customer feedback and convert it into source-linked product insights.
 
-**The current repository contains Phases 1–7: foundation through persistent human review and safe masked exports. LLM integration and evaluation module are deferred.**
+**The current repository contains Phase 8A: UI/UX redesign into a professional multipage Streamlit dashboard, alongside persistent human review and safe masked exports. LLM integration and evaluation module are deferred.**
 
 ---
 
@@ -13,6 +13,22 @@ Product managers, founders, product operations managers, and customer-support ma
 ## Initial Use Case
 
 Synthetic Indian fintech customer feedback covering payments, refunds, KYC, authentication, fees, support, performance, usability, and security topics.
+
+## Phase 8A Status (Product UI/UX Redesign)
+
+Phase 8A reorganizes SignalDesk into a product-oriented multipage application designed for product leaders:
+
+- **Product Positioning** — "SignalDesk turns messy customer feedback into prioritized product problems, backed by customer evidence." Technical algorithms (TF-IDF, K-Means, raw formulas) are tucked cleanly into expanders.
+- **Custom Brand Theming** — Styled via `.streamlit/config.toml` with Linear/Notion-inspired slate neutral palette (`#2563EB` primary, `#FFFFFF` background, `#F8FAFC` secondary, `#0F172A` text).
+- **7-Page Product Navigation Structure:**
+  1. `app.py` — **Home**: Product Dashboard ("Good morning, [User]...", summary KPIs, and "What needs your attention?" cards).
+  2. `pages/01_Analyze.py` — **Analyze**: "Analyze customer feedback" (CSV upload, concise quality summary, progress status runner).
+  3. `pages/02_Insights.py` — **Insights**: "Customer issues" (Ranked issue table, and issue detail page with Executive Summary, Why this matters, Masked quotes, and Investigation areas).
+  4. `pages/03_Feedback.py` — **Feedback**: Individual customer feedback explorer with top filters (Issue, Sentiment, Impact, Source) and record detail drill-down.
+  5. `pages/04_Review.py` — **Review**: "Review insights" (Approve / Needs evidence / Reject actions with SQLite persistence).
+  6. `pages/05_Export.py` — **Export**: "Share your findings" (Executive summary, CSV, JSON, and Markdown downloads with privacy notices).
+  7. `pages/06_About.py` — **About**: Product overview, high-level methodology, limitations, privacy policy, and contact link.
+- **Reusable Component Library** — Modular UI components implemented in `src/ui_components.py`.
 
 ## Phase 7 Status
 
@@ -25,21 +41,6 @@ Phase 7 adds local SQLite review persistence and privacy-safe masked exports:
   2. Masked Theme Insights CSV (`theme_insights_masked.csv`)
   3. Masked Theme Insights JSON (`theme_insights_masked.json`)
   4. Executive Markdown Report (`voc_executive_report_masked.md`)
-
-## Phase 6 Status
-
-Phase 6 adds a Streamlit dashboard with an end-to-end user workflow across 10 sections:
-
-- **Home** — product overview, sample CSV downloads, prototype disclaimer
-- **Upload & mapping** — CSV upload, inferred or manual column mapping
-- **Data quality** — full `DataQualityReport` with continue / start-over actions
-- **Privacy & masking** — PII summary (no raw PII), masked-text preview, run analysis
-- **Feedback explorer** — filterable analysis table with masked-text detail
-- **Theme insights** — priority-sorted themes with evidence warnings
-- **Theme detail** — distributions, validated quotes, priority components
-- **Review** — local SQLite-backed approval / rejection / notes management
-- **Export** — masked report downloads (CSV, JSON, Markdown)
-- **Limitations & methodology** — transparent design documentation
 
 ## Database Location & Management
 
