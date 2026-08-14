@@ -1,0 +1,63 @@
+[
+  {
+    "theme": "billing_issue",
+    "keywords": ["billing", "invoice", "overcharged", "subscription", "payment failed", "credit card"],
+    "phrases": ["incorrect invoice", "charged twice", "cancel subscription", "billing error"],
+    "product_area": "pricing",
+    "default_severity": "high",
+    "default_intent": "complaint",
+    "subthemes": {
+      "overcharge": ["overcharged", "charged twice", "wrong amount"],
+      "subscription": ["cancel subscription", "renewal failed", "upgrade error"]
+    },
+    "suggested_action_template": "Audit billing engine and subscription renewal workflows."
+  },
+  {
+    "theme": "feature_request",
+    "keywords": ["please add", "feature request", "would be great", "support for", "integration with"],
+    "phrases": ["need feature", "wish it had", "please build"],
+    "product_area": "other",
+    "default_severity": "low",
+    "default_intent": "request",
+    "subthemes": {
+      "integration": ["integration with", "api access", "webhook"]
+    },
+    "suggested_action_template": "Log feature request for roadmap consideration."
+  },
+  {
+    "theme": "performance_lag",
+    "keywords": ["slow", "lag", "latency", "timeout", "loading", "spins"],
+    "phrases": ["dashboard is slow", "takes long to load", "page timeout"],
+    "product_area": "performance",
+    "default_severity": "medium",
+    "default_intent": "bug_report",
+    "subthemes": {
+      "load_time": ["slow to load", "page timeout", "dashboard lag"]
+    },
+    "suggested_action_template": "Optimize API endpoints and database queries."
+  },
+  {
+    "theme": "integration_error",
+    "keywords": ["api error", "webhook failed", "zapier", "slack integration", "sync error"],
+    "phrases": ["sync stopped working", "api credentials invalid", "integration broke"],
+    "product_area": "integrations",
+    "default_severity": "high",
+    "default_intent": "bug_report",
+    "subthemes": {
+      "sync_failure": ["sync error", "failed to sync", "data missing"]
+    },
+    "suggested_action_template": "Check integration webhook logs and third-party API rates."
+  },
+  {
+    "theme": "ui_friction",
+    "keywords": ["confusing UI", "hard to find", "cluttered", "navigation", "cant find button"],
+    "phrases": ["where is the button", "confusing navigation", "too complex"],
+    "product_area": "usability",
+    "default_severity": "low",
+    "default_intent": "complaint",
+    "subthemes": {
+      "discoverability": ["cant find", "where is", "hard to navigate"]
+    },
+    "suggested_action_template": "Review user flow and layout hierarchy."
+  }
+]

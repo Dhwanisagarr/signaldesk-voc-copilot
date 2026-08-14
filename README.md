@@ -2,7 +2,7 @@
 
 A CSV-first, evidence-focused product that helps product managers analyze customer feedback and convert it into source-linked product insights.
 
-**The current repository contains Phase 8A: UI/UX redesign into a professional multipage Streamlit dashboard, alongside persistent human review and safe masked exports. LLM integration and evaluation module are deferred.**
+**The current repository contains Phase 8B: Consolidated 3-Step B2B Product Workflow, Inline Evidence Drawer, Configurable Domain Taxonomies, and Embedded Review Decisions. LLM integration and evaluation module are deferred.**
 
 ---
 
@@ -10,25 +10,15 @@ A CSV-first, evidence-focused product that helps product managers analyze custom
 
 Product managers, founders, product operations managers, and customer-support managers who receive customer feedback from multiple sources and need to identify recurring problems and decide what to investigate.
 
-## Initial Use Case
+## Consolidated 3-Step Workflow
 
-Synthetic Indian fintech customer feedback covering payments, refunds, KYC, authentication, fees, support, performance, usability, and security topics.
+SignalDesk reorganizes Voice-of-Customer analysis into a streamlined 3-step B2B product workflow:
 
-## Phase 8A Status (Product UI/UX Redesign)
+1. **Import Data (`pages/01_Import.py`)** — Upload CSV exports, select domain taxonomy presets (`Fintech`, `SaaS`, `E-Commerce`, `General`), run column auto-mapping, and audit dataset privacy health.
+2. **Insight Workspace (`pages/02_Workspace.py`)** — Master-detail issue hub featuring human-readable Priority Urgency badges (`P0 Critical`, `P1 High`, `P2 Medium`, `P3 Low`), embedded review decision controls (`Approve for Roadmap`, `Needs Evidence`, `Dismiss`), and an **Inline Evidence Drawer** for deep quote exploration without context switching.
+3. **Export & Share (`pages/03_Export.py`)** — Rendered executive report preview, Markdown export, evidence CSV downloads, and structured JSON export.
 
-Phase 8A reorganizes SignalDesk into a product-oriented multipage application designed for product leaders:
-
-- **Product Positioning** — "SignalDesk turns messy customer feedback into prioritized product problems, backed by customer evidence." Technical algorithms (TF-IDF, K-Means, raw formulas) are tucked cleanly into expanders.
-- **Custom Brand Theming** — Styled via `.streamlit/config.toml` with Linear/Notion-inspired slate neutral palette (`#2563EB` primary, `#FFFFFF` background, `#F8FAFC` secondary, `#0F172A` text).
-- **7-Page Product Navigation Structure:**
-  1. `app.py` — **Home**: Product Dashboard ("Good morning, [User]...", summary KPIs, and "What needs your attention?" cards).
-  2. `pages/01_Analyze.py` — **Analyze**: "Analyze customer feedback" (CSV upload, concise quality summary, progress status runner).
-  3. `pages/02_Insights.py` — **Insights**: "Customer issues" (Ranked issue table, and issue detail page with Executive Summary, Why this matters, Masked quotes, and Investigation areas).
-  4. `pages/03_Feedback.py` — **Feedback**: Individual customer feedback explorer with top filters (Issue, Sentiment, Impact, Source) and record detail drill-down.
-  5. `pages/04_Review.py` — **Review**: "Review insights" (Approve / Needs evidence / Reject actions with SQLite persistence).
-  6. `pages/05_Export.py` — **Export**: "Share your findings" (Executive summary, CSV, JSON, and Markdown downloads with privacy notices).
-  7. `pages/06_About.py` — **About**: Product overview, high-level methodology, limitations, privacy policy, and contact link.
-- **Reusable Component Library** — Modular UI components implemented in `src/ui_components.py`.
+Technical floating-point scores (`priority_score`, `frequency_score`, `severity_score`, `confidence_score`) are tucked cleanly into expandable **Methodology & Score Details** sections.
 
 ## Phase 7 Status
 

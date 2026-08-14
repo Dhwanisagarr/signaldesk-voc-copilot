@@ -58,9 +58,13 @@ def _unknown_result(feedback_id: str, warnings: list[str]) -> AnalysisResult:
     )
 
 
+from src.taxonomy_loader import load_taxonomy_preset
+
+
 def analyze_feedback_dataframe(
     df: pd.DataFrame,
     text_column: str = "masked_text",
+    taxonomy_preset: str = "fintech",
 ) -> AnalysisPipelineResult:
     """Analyze a DataFrame of masked feedback using local deterministic rules."""
     _validate_input_dataframe(df, text_column)
@@ -82,8 +86,11 @@ def analyze_feedback_dataframe(
     feedback_ids = working["feedback_id"].astype(str).tolist()
     masked_texts = working[text_column].tolist()
 
+    rules = load_taxonomy_preset(taxonomy_preset)
+    rules_by_name = {rule.theme: rule for rule in rules}
+
     sentiment_results = analyze_sentiment_batch(masked_texts)
-    theme_results = classify_themes_batch(masked_texts)
+    theme_results = classify_themes_batch(masked_texts, rules=rules)
     clustering_output = cluster_feedback(masked_texts, feedback_ids)
     pipeline_warnings.extend(clustering_output.warnings)
 
@@ -113,7 +120,7 @@ def analyze_feedback_dataframe(
         if themes.primary_theme == "unknown":
             row_warnings.append("No reliable theme identified.")
 
-        primary_rule = THEME_RULES_BY_NAME.get(themes.primary_theme)
+        primary_rule = rules_by_name.get(themes.primary_theme, THEME_RULES_BY_NAME.get(themes.primary_theme))
         primary_theme_label = ThemeLabel(
             theme=themes.primary_theme,
             subtheme=themes.primary_subtheme,

@@ -1,0 +1,38 @@
+[
+  {
+    "theme": "product_quality",
+    "keywords": ["poor quality", "disappointed", "bad service", "terrible experience", "not working"],
+    "phrases": ["worst service", "very disappointed", "does not work"],
+    "product_area": "quality",
+    "default_severity": "high",
+    "default_intent": "complaint",
+    "subthemes": {
+      "satisfaction": ["disappointed", "worst experience"]
+    },
+    "suggested_action_template": "Review customer feedback trends and service standards."
+  },
+  {
+    "theme": "service_complaint",
+    "keywords": ["customer service", "agent rude", "no response", "ignored", "call center"],
+    "phrases": ["no reply", "rude behavior", "kept waiting"],
+    "product_area": "customer_support",
+    "default_severity": "medium",
+    "default_intent": "complaint",
+    "subthemes": {
+      "responsiveness": ["no reply", "long wait"]
+    },
+    "suggested_action_template": "Review support agent response times and training."
+  },
+  {
+    "theme": "feature_request",
+    "keywords": ["please add", "would like", "need option", "suggestion", "improve"],
+    "phrases": ["add feature", "would be nice"],
+    "product_area": "other",
+    "default_severity": "low",
+    "default_intent": "request",
+    "subthemes": {
+      "suggestion": ["please add", "suggestion"]
+    },
+    "suggested_action_template": "Log customer suggestions for upcoming sprint planning."
+  }
+]

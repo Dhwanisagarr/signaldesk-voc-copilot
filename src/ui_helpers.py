@@ -31,6 +31,7 @@ from src.evidence import aggregate_theme_insights
 from src.pii_detector import mask_dataframe_feedback
 from src.prioritization import prioritize_theme_insights
 from src.schemas import AnalysisPipelineResult, AnalysisResult, ThemeAggregationResult, ThemeInsight
+from src.taxonomy_loader import SESSION_TAXONOMY
 
 # Streamlit session-state keys (documented for the dashboard).
 SESSION_UPLOAD_BYTES: str = "upload_bytes"
@@ -48,6 +49,8 @@ SESSION_ANALYSIS_COMPLETE: str = "analysis_complete"
 SESSION_PIPELINE_ERROR: str = "pipeline_error"
 SESSION_TEMP_WARNINGS: str = "temp_warnings"
 
+SESSION_DRAWER_THEME: str = "drawer_theme"
+
 SESSION_KEYS: tuple[str, ...] = (
     SESSION_UPLOAD_BYTES,
     SESSION_UPLOAD_NAME,
@@ -63,6 +66,8 @@ SESSION_KEYS: tuple[str, ...] = (
     SESSION_ANALYSIS_COMPLETE,
     SESSION_PIPELINE_ERROR,
     SESSION_TEMP_WARNINGS,
+    SESSION_TAXONOMY,
+    SESSION_DRAWER_THEME,
 )
 
 NOT_MAPPED_LABEL: str = "— Not mapped —"
@@ -102,6 +107,8 @@ def default_session_values() -> dict[str, Any]:
         SESSION_ANALYSIS_COMPLETE: False,
         SESSION_PIPELINE_ERROR: None,
         SESSION_TEMP_WARNINGS: [],
+        SESSION_TAXONOMY: "fintech",
+        SESSION_DRAWER_THEME: None,
     }
 
 
@@ -376,13 +383,16 @@ def apply_masking(valid_rows: pd.DataFrame) -> pd.DataFrame:
     return mask_dataframe_feedback(valid_rows)
 
 
-def run_analysis_pipeline(masked_df: pd.DataFrame) -> PipelineBundle:
+def run_analysis_pipeline(
+    masked_df: pd.DataFrame,
+    taxonomy_preset: str = "fintech",
+) -> PipelineBundle:
     """Run Phase 4 analysis and Phase 5 aggregation/prioritization on masked data."""
     if "masked_text" not in masked_df.columns:
         raise KeyError(
             "Analysis requires masked_text. Run PII masking before analysis."
         )
-    analysis = analyze_feedback_dataframe(masked_df)
+    analysis = analyze_feedback_dataframe(masked_df, taxonomy_preset=taxonomy_preset)
     aggregation = aggregate_theme_insights(analysis.results, masked_df)
     insights = prioritize_theme_insights(
         aggregation.insights,
@@ -511,4 +521,19 @@ def map_evidence_label(insight: ThemeInsight) -> str:
     """Return Title-cased evidence strength label (Strong/Moderate/Weak)."""
     strength = getattr(insight, "evidence_strength", "weak")
     return str(strength).capitalize()
+
+
+def map_priority_urgency(insight: ThemeInsight) -> str:
+    """Map theme metrics to Priority Urgency label (P0 Critical / P1 High / P2 Medium / P3 Low)."""
+    impact = map_impact_level(insight)
+    if impact == "High":
+        if insight.mention_count >= 5:
+            return "P0 Critical"
+        return "P1 High"
+    elif impact == "Medium":
+        if insight.mention_count >= 5:
+            return "P1 High"
+        return "P2 Medium"
+    return "P3 Low"
+
 

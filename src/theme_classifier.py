@@ -203,7 +203,10 @@ def _scores_to_classification(scores: list[_ThemeScore], method: str, warning: s
     )
 
 
-def classify_theme(text: str | None) -> ThemeClassification:
+def classify_theme(
+    text: str | None,
+    rules: tuple[ThemeRuleConfig, ...] | None = None,
+) -> ThemeClassification:
     """Classify themes for one masked text using keyword rules only."""
     normalized = normalize_analysis_text(text)
     if normalized is None:
@@ -215,8 +218,9 @@ def classify_theme(text: str | None) -> ThemeClassification:
             requires_human_review=True,
         )
 
+    rules_to_use = rules if rules is not None else THEME_RULES
     text_lower = normalized.lower()
-    scores = [_score_theme(text_lower, rule) for rule in THEME_RULES]
+    scores = [_score_theme(text_lower, rule) for rule in rules_to_use]
     return _scores_to_classification(scores, method="keyword_rule")
 
 
@@ -239,9 +243,10 @@ def fit_theme_vectorizer(texts: list[str | None]) -> tuple[TfidfVectorizer | Non
     return vectorizer, corpus
 
 
-def _theme_reference_documents() -> dict[str, str]:
+def _theme_reference_documents(rules: tuple[ThemeRuleConfig, ...] | None = None) -> dict[str, str]:
+    rules_to_use = rules if rules is not None else THEME_RULES
     documents: dict[str, str] = {}
-    for rule in THEME_RULES:
+    for rule in rules_to_use:
         documents[rule.theme] = " ".join(rule.phrases + rule.keywords)
     return documents
 
@@ -249,6 +254,7 @@ def _theme_reference_documents() -> dict[str, str]:
 def infer_tfidf_fallback(
     text: str | None,
     vectorizer: TfidfVectorizer | None,
+    rules: tuple[ThemeRuleConfig, ...] | None = None,
 ) -> ThemeClassification:
     """Infer a theme using dataset-level TF-IDF similarity."""
     normalized = normalize_analysis_text(text)
@@ -261,7 +267,9 @@ def infer_tfidf_fallback(
             requires_human_review=True,
         )
 
-    references = _theme_reference_documents()
+    rules_to_use = rules if rules is not None else THEME_RULES
+    rules_by_name = {rule.theme: rule for rule in rules_to_use}
+    references = _theme_reference_documents(rules_to_use)
     try:
         reference_matrix = vectorizer.transform(list(references.values()))
         text_matrix = vectorizer.transform([normalized])
@@ -296,7 +304,16 @@ def infer_tfidf_fallback(
             requires_human_review=True,
         )
 
-    rule = THEME_RULES_BY_NAME[best_theme]
+    rule = rules_by_name.get(best_theme, THEME_RULES_BY_NAME.get(best_theme))
+    if rule is None:
+        return ThemeClassification(
+            primary_theme="unknown",
+            primary_confidence=0.0,
+            method="unknown",
+            warning="TF-IDF fallback rule mapping missing.",
+            requires_human_review=True,
+        )
+
     text_lower = normalized.lower()
     confidence = min(TFIDF_FALLBACK_MAX_CONFIDENCE, best_similarity)
     severity = determine_severity(text_lower, rule.default_severity)
@@ -314,9 +331,12 @@ def infer_tfidf_fallback(
     )
 
 
-def classify_themes_batch(texts: list[str | None]) -> list[ThemeClassification]:
+def classify_themes_batch(
+    texts: list[str | None],
+    rules: tuple[ThemeRuleConfig, ...] | None = None,
+) -> list[ThemeClassification]:
     """Classify themes for a batch with keyword rules and TF-IDF fallback."""
-    keyword_results = [classify_theme(text) for text in texts]
+    keyword_results = [classify_theme(text, rules=rules) for text in texts]
     vectorizer, _ = fit_theme_vectorizer(texts)
 
     final_results: list[ThemeClassification] = []
@@ -326,7 +346,7 @@ def classify_themes_batch(texts: list[str | None]) -> list[ThemeClassification]:
             or keyword_result.primary_confidence < THEME_PRIMARY_MIN_CONFIDENCE
         )
         if needs_fallback:
-            fallback = infer_tfidf_fallback(texts[index], vectorizer)
+            fallback = infer_tfidf_fallback(texts[index], vectorizer, rules=rules)
             if fallback.primary_theme != "unknown":
                 # Preserve secondary themes from keyword pass when present.
                 fallback.secondary_themes = keyword_result.secondary_themes

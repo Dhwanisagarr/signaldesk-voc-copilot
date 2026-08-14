@@ -1,0 +1,38 @@
+[
+  {
+    "theme": "shipping_delay",
+    "keywords": ["delivery delayed", "shipping delay", "not delivered", "where is my order", "tracking"],
+    "phrases": ["package not arrived", "late delivery", "tracking not updating"],
+    "product_area": "logistics",
+    "default_severity": "high",
+    "default_intent": "complaint",
+    "subthemes": {
+      "tracking": ["tracking stuck", "no update", "where is package"]
+    },
+    "suggested_action_template": "Audit logistics partner SLAs and tracking dispatch."
+  },
+  {
+    "theme": "defective_product",
+    "keywords": ["damaged", "defective", "broken", "wrong item", "missing parts"],
+    "phrases": ["received damaged", "item is broken", "wrong product sent"],
+    "product_area": "fulfillment",
+    "default_severity": "critical",
+    "default_intent": "complaint",
+    "subthemes": {
+      "damage": ["package crushed", "broken item"]
+    },
+    "suggested_action_template": "Review warehouse packaging and merchant quality checks."
+  },
+  {
+    "theme": "refund_request",
+    "keywords": ["return item", "want refund", "money back", "exchange"],
+    "phrases": ["process my refund", "how to return", "refund status"],
+    "product_area": "refunds",
+    "default_severity": "medium",
+    "default_intent": "request",
+    "subthemes": {
+      "return_process": ["pickup delay", "return shipping label"]
+    },
+    "suggested_action_template": "Streamline reverse logistics and automated refund approval."
+  }
+]

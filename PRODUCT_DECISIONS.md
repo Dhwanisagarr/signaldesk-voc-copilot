@@ -246,4 +246,23 @@ Product Managers care about relative customer impact and evidence strength, not 
 
 Default Streamlit dashboards can look like internal data tools. Applying a restrained slate color system via `.streamlit/config.toml` (`#2563EB` primary, `#FFFFFF` background, `#F8FAFC` secondary, `#0F172A` text), generous whitespace, subtle card borders, and clear typographic hierarchy delivers a clean, modern SaaS analytics feel.
 
+## Phase 8B decisions
+
+### Why navigation was consolidated into a 3-step workflow
+
+A 7-page navigation structure created unnecessary context switching and fragmented simple decisions across separate tabs. Consolidating the navigation into **1. Import Data**, **2. Insight Workspace**, and **3. Export & Share** provides an intuitive linear flow (`st.navigation`) matching how product managers work.
+
+### Why review decisions were embedded directly into issue detail
+
+Forcing users to jump to a separate `Review` tab to change a status dropdown broke user flow. Embedding review buttons (`Approve for Roadmap`, `Needs More Evidence`, `Dismiss Issue`) and reviewer notes directly in the Issue Detail Panel connects evaluation with decision-making while preserving local SQLite persistence.
+
+### Why an inline evidence drawer was added
+
+Context-switching to a separate `Feedback` page to view underlying quotes caused users to lose their place in the issue workspace. The inline evidence drawer opens overlay views directly on the issue page, letting PMs inspect all supporting customer records without leaving the workspace.
+
+### Why domain taxonomies were made configurable via JSON presets
+
+Hardcoding theme keyword rules to Indian fintech restricted SignalDesk's real-world utility. Introducing domain taxonomy presets (`fintech.json`, `saas.json`, `ecommerce.json`, `general.json`) in `src/taxonomies/` allows users to analyze customer feedback across diverse product domains while keeping `fintech` as the default for 100% backward compatibility.
+
+
 
