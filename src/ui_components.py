@@ -7,6 +7,7 @@ import streamlit as st
 
 from src.config import SUPPORTED_REVIEW_STATUSES
 from src.schemas import ThemeInsight
+from src.theme import evidence_badge_kind, impact_badge_kind, render_badges
 from src.ui_helpers import (
     clear_session_data,
     format_review_status_label,
@@ -14,6 +15,7 @@ from src.ui_helpers import (
     get_review_status,
     get_reviewer_note,
     init_session_state,
+    issue_short_explanation,
     map_evidence_label,
     map_impact_level,
     set_review_status,
@@ -43,7 +45,7 @@ def render_sidebar_footer() -> None:
         st.rerun()
 
     st.sidebar.caption(
-        "Data stays in browser memory; review decisions persist in local SQLite (`outputs/reviews.db`)."
+        "Data stays in browser memory. Review decisions are saved automatically."
     )
 
 
@@ -59,7 +61,7 @@ def render_issue_card(
     on_select: Callable[[str], None] | None = None,
     key_prefix: str = "card",
 ) -> None:
-    """Render a product issue card for Overview / Issues list."""
+    """Render a product issue card: name, customer count, impact, evidence, explanation, CTA."""
     theme_name = insight.theme_name
     theme_label = format_theme_label(theme_name)
     impact = map_impact_level(insight)
@@ -68,15 +70,12 @@ def render_issue_card(
 
     with st.container(border=True):
         st.markdown(f"#### {theme_label}")
-        col_m1, col_m2 = st.columns(2)
-        col_m1.markdown(f"**Customers:** {customers_count}")
-        col_m2.markdown(f"**Impact:** `{impact}`")
-        st.caption(f"Evidence: **{evidence}**")
-
-        explanation = (
-            f"Customers are repeatedly reporting issues related to {theme_label.lower()}."
+        st.caption(f"{customers_count} customer(s) affected")
+        render_badges(
+            (f"{impact} impact", impact_badge_kind(impact)),
+            (f"{evidence} evidence", evidence_badge_kind(evidence)),
         )
-        st.write(explanation)
+        st.write(issue_short_explanation(insight, theme_label))
 
         if st.button("View issue →", key=f"{key_prefix}_{theme_name}", width="stretch"):
             st.session_state["selected_theme_detail"] = theme_name

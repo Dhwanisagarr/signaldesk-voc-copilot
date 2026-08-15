@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import streamlit as st
 
+from src.theme import inject_theme
 from src.ui_helpers import (
     init_session_state,
     sync_review_store_to_session,
@@ -18,6 +19,7 @@ def main() -> None:
         initial_sidebar_state="expanded",
     )
 
+    inject_theme()
     init_session_state(st.session_state)
     sync_review_store_to_session(st.session_state)
 

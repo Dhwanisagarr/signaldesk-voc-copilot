@@ -14,6 +14,7 @@ from src.data_loader import (
     read_csv_input,
 )
 from src.taxonomy_loader import TAXONOMY_PRESETS
+from src.theme import eyebrow, hero, section_title
 from src.ui_components import render_sidebar_footer
 from src.ui_helpers import (
     NOT_MAPPED_LABEL,
@@ -40,12 +41,22 @@ from src.ui_helpers import (
 
 
 def main() -> None:
-    st.title("1. Import customer feedback data")
-    st.caption("Upload your CSV export, choose your domain taxonomy, and let SignalDesk extract prioritized product problems.")
+    eyebrow("Import")
+    hero(
+        "Turn customer feedback into product decisions.",
+        "SignalDesk finds recurring customer problems, shows you the evidence behind "
+        "them, and helps you decide what to investigate next.",
+    )
 
     st.divider()
 
     # 1. Primary Ingestion Inputs: CSV Upload & Taxonomy Preset
+    section_title("Analyze customer feedback")
+    st.caption(
+        "Upload your customer feedback CSV and SignalDesk will identify recurring "
+        "problems and supporting evidence."
+    )
+
     c_file, c_tax = st.columns([3, 2])
 
     with c_file:
@@ -59,11 +70,11 @@ def main() -> None:
         curr_tax = st.session_state.get(SESSION_TAXONOMY, "fintech")
         tax_keys = list(TAXONOMY_PRESETS.keys())
         selected_tax = st.selectbox(
-            "Domain Taxonomy Preset",
+            "Domain taxonomy",
             options=tax_keys,
             index=tax_keys.index(curr_tax) if curr_tax in tax_keys else 0,
             format_func=lambda k: TAXONOMY_PRESETS.get(k, k),
-            help="Select the domain-specific rule dictionary used to categorize feedback themes.",
+            help="The rule set SignalDesk uses to categorize feedback themes for your industry.",
         )
         st.session_state[SESSION_TAXONOMY] = selected_tax
 
@@ -97,7 +108,7 @@ def main() -> None:
 
         if infer_error:
             st.warning(f"Column mapping is ambiguous: {infer_error}")
-            with st.expander("Map CSV Columns", expanded=True):
+            with st.expander("Map CSV columns", expanded=True):
                 normalized_cols = list(read_result.dataframe.columns)
                 options = [NOT_MAPPED_LABEL, *normalized_cols]
                 selections: dict[str, str | None] = {}
@@ -132,14 +143,13 @@ def main() -> None:
     st.divider()
 
     # 2. Dataset Health Summary
-    st.markdown("### Dataset Health & Privacy Audit")
+    section_title("Data health")
     c1, c2, c3, c4 = st.columns(4)
-    c1.metric("Total Rows", report.total_rows)
-    c2.metric("Valid Feedback Rows", report.valid_rows)
-    c3.metric("Excluded Rows", report.invalid_rows)
-    c4.metric("Active Taxonomy", TAXONOMY_PRESETS.get(selected_tax, selected_tax))
+    c1.metric("Responses", f"{report.total_rows:,}")
+    c2.metric("Valid", f"{report.valid_rows:,}")
+    c3.metric("Need attention", f"{report.invalid_rows:,}")
+    c4.metric("Taxonomy", TAXONOMY_PRESETS.get(selected_tax, selected_tax))
 
-    # Data Preview Expander
     with st.expander("Data preview & validation details"):
         st.dataframe(read_result.dataframe.head(5), width="stretch")
         if report.row_issues:
@@ -162,8 +172,8 @@ def main() -> None:
     st.divider()
 
     # 3. Run Analysis Action
-    st.markdown("### Run Analysis")
-    if st.button("Run analysis →", type="primary", width="stretch"):
+    section_title("Run analysis")
+    if st.button("Analyze feedback →", type="primary", width="stretch"):
         st.session_state[SESSION_PIPELINE_ERROR] = None
         progress_bar = st.progress(0)
 

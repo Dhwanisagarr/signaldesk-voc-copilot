@@ -537,3 +537,34 @@ def map_priority_urgency(insight: ThemeInsight) -> str:
     return "P3 Low"
 
 
+def overview_stats(
+    insights: list[ThemeInsight],
+    aggregation: ThemeAggregationResult | None,
+) -> dict[str, int]:
+    """Return top-level dataset overview counts for the home/overview screen.
+
+    Purely derives display counts from already-computed insights and
+    aggregation results (no scoring or classification logic).
+    """
+    total_responses = aggregation.total_valid_feedback_records if aggregation else 0
+    high_impact = sum(1 for insight in insights if map_impact_level(insight) == "High")
+    evidence_backed = sum(1 for insight in insights if insight.evidence_strength in ("strong", "moderate"))
+    return {
+        "customer_responses": total_responses,
+        "issues_identified": len(insights),
+        "high_impact_issues": high_impact,
+        "evidence_backed_issues": evidence_backed,
+    }
+
+
+def issue_short_explanation(insight: ThemeInsight, theme_label: str) -> str:
+    """Return a short plain-English explanation for an issue card.
+
+    Uses the theme's own possible_root_causes when available, otherwise
+    falls back to a generic phrasing. No new inference is performed.
+    """
+    if insight.possible_root_causes:
+        return insight.possible_root_causes[0]
+    return f"Customers are repeatedly reporting issues related to {theme_label.lower()}."
+
+

@@ -12,6 +12,7 @@ from src.export import (
     export_theme_insights_json,
 )
 from src.review_store import get_all_review_decisions
+from src.theme import eyebrow, hero, section_title
 from src.ui_components import render_sidebar_footer
 from src.ui_helpers import (
     SESSION_AGGREGATION,
@@ -23,8 +24,11 @@ from src.ui_helpers import (
 
 
 def main() -> None:
-    st.title("3. Export & Share")
-    st.caption("Rendered executive preview, markdown report, and customer evidence exports for team syncs.")
+    eyebrow("Export & Share")
+    hero(
+        "Share your findings.",
+        "Turn your analysis into something you can share with your team.",
+    )
 
     st.divider()
 
@@ -58,21 +62,24 @@ def main() -> None:
         return
 
     # 1. Executive Summary Live Preview
-    st.markdown("### Executive Summary Preview")
+    section_title("Executive summary preview")
     with st.container(border=True):
         st.markdown(markdown_doc)
 
     st.divider()
 
     # 2. Download Deliverables
-    st.markdown("### Download Deliverables")
-    st.caption("All exports undergo automatic privacy validation (`validate_export_privacy`). Raw text and unmasked PII are excluded.")
+    section_title("Download deliverables")
+    st.caption(
+        "All exports are automatically checked for privacy — raw text and unmasked "
+        "personal data are always excluded."
+    )
 
     col1, col2 = st.columns(2)
 
     with col1:
         with st.container(border=True):
-            st.markdown("#### Executive Summary Report (.md)")
+            st.markdown("#### Executive Summary")
             st.caption("Markdown report formatted for Notion, GitHub, or slide syncs.")
             st.download_button(
                 "Download Markdown Report",
@@ -85,7 +92,7 @@ def main() -> None:
             )
 
         with st.container(border=True):
-            st.markdown("#### Customer Evidence CSV")
+            st.markdown("#### Customer Evidence")
             st.caption("Full customer feedback records with masked text.")
             st.download_button(
                 "Download Evidence CSV",
@@ -98,7 +105,7 @@ def main() -> None:
 
     with col2:
         with st.container(border=True):
-            st.markdown("#### Issue Summary CSV")
+            st.markdown("#### Issue Summary")
             st.caption("Prioritized customer issues and evidence metrics.")
             st.download_button(
                 "Download Issue Summary CSV",
@@ -110,7 +117,7 @@ def main() -> None:
             )
 
         with st.container(border=True):
-            st.markdown("#### Structured JSON / API Export")
+            st.markdown("#### JSON / Markdown")
             st.caption("Structured JSON dataset format for roadmap tools.")
             st.download_button(
                 "Download JSON Dataset",
@@ -123,12 +130,12 @@ def main() -> None:
 
     st.divider()
 
-    with st.expander("Privacy & Data Guarantees"):
+    with st.expander("Privacy & data guarantees"):
         st.markdown(
             """
-- **Pre-Export Privacy Audit:** All exports undergo automatic validation (`validate_export_privacy`).
-- **Masked Data Policy:** Raw `feedback_text`, `original_text`, and unmasked PII tokens (emails, phones, UPI IDs) are strictly excluded from all exported deliverables.
-- **Review Decision Sync:** Human review decisions (`approved`, `rejected`, `needs_more_evidence`) and reviewer notes are preserved in exports.
+- **Pre-export privacy audit:** every export is automatically validated before download.
+- **Masked data policy:** raw feedback text and unmasked personal data (emails, phones, IDs) are never included.
+- **Review decisions:** approved / rejected / needs-more-evidence statuses and reviewer notes are preserved in exports.
 """
         )
 
