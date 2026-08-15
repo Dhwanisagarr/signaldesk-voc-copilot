@@ -5,6 +5,7 @@ from __future__ import annotations
 import pandas as pd
 import pytest
 
+import src.theme as theme_module
 from src.config import PRIORITY_SCORE_WARNING, SAMPLE_FEEDBACK_PATH
 from src.data_loader import load_and_validate_feedback
 from src.ui_helpers import (
@@ -36,6 +37,11 @@ from src.ui_helpers import (
 
 
 class TestFormatting:
+    def test_button_contrast_tokens(self) -> None:
+        assert theme_module.YELLOW_ON_YELLOW_TEXT == "#000000"
+        assert "color: #000000 !important;" in theme_module._CSS
+        assert "color: #FFFFFF !important;" in theme_module._CSS
+
     def test_format_theme_label(self) -> None:
         assert format_theme_label("payment_failure") == "Payment Failure"
         assert format_theme_label("unknown") == "Unknown"

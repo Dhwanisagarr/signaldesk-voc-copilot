@@ -29,7 +29,7 @@ BORDER_SUBTLE = "#1F1F22"
 YELLOW = "#F4C21A"
 YELLOW_DIM = "#C9A315"
 YELLOW_SOFT_BG = "rgba(244, 194, 26, 0.12)"
-YELLOW_ON_YELLOW_TEXT = "#14140F"
+YELLOW_ON_YELLOW_TEXT = "#000000"
 
 WHITE = "#FFFFFF"
 WHITE_SOFT_BG = "rgba(255, 255, 255, 0.08)"
@@ -90,14 +90,22 @@ hr {{ border-color: {BORDER_SUBTLE} !important; margin: 1.25rem 0 !important; }}
     color: {WHITE} !important;
     transition: all 0.15s ease;
 }}
+.stButton > button *, .stDownloadButton > button * {{
+    color: inherit !important;
+    -webkit-text-fill-color: inherit !important;
+}}
 .stButton > button:hover {{
     border-color: {TEXT_SECONDARY} !important;
     background-color: {BG_ELEVATED_2} !important;
 }}
-.stButton > button[kind="primary"] {{
+.stButton > button[kind="primary"], .stDownloadButton > button[kind="primary"] {{
     background-color: {YELLOW} !important;
     color: {YELLOW_ON_YELLOW_TEXT} !important;
     border: 1px solid {YELLOW} !important;
+}}
+.stButton > button[kind="primary"] *, .stDownloadButton > button[kind="primary"] * {{
+    color: {YELLOW_ON_YELLOW_TEXT} !important;
+    -webkit-text-fill-color: {YELLOW_ON_YELLOW_TEXT} !important;
 }}
 .stButton > button[kind="primary"]:hover {{
     background-color: {YELLOW_DIM} !important;
@@ -109,11 +117,6 @@ hr {{ border-color: {BORDER_SUBTLE} !important; margin: 1.25rem 0 !important; }}
     border: 1px solid {BORDER} !important;
     background-color: {BG_ELEVATED_2} !important;
     color: {WHITE} !important;
-}}
-.stDownloadButton > button[kind="primary"] {{
-    background-color: {YELLOW} !important;
-    color: {YELLOW_ON_YELLOW_TEXT} !important;
-    border: 1px solid {YELLOW} !important;
 }}
 
 [data-testid="stVerticalBlockBorderWrapper"] {{
