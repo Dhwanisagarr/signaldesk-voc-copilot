@@ -111,7 +111,10 @@ hr {{ border-color: {BORDER_SUBTLE} !important; margin: 1.25rem 0 !important; }}
     background-color: {YELLOW_DIM} !important;
     border-color: {YELLOW_DIM} !important;
 }}
-.stDownloadButton > button {{
+.stDownloadButton > button,
+.stDownloadButton button,
+div[data-testid="stDownloadButton"] > button,
+div[data-testid="stDownloadButton"] button {{
     border-radius: 8px !important;
     font-weight: 600 !important;
     border: 1px solid {BORDER} !important;
@@ -119,22 +122,49 @@ hr {{ border-color: {BORDER_SUBTLE} !important; margin: 1.25rem 0 !important; }}
     color: {WHITE} !important;
     transition: all 0.15s ease;
 }}
-.stDownloadButton > button * {{
+.stDownloadButton > button *,
+.stDownloadButton button *,
+div[data-testid="stDownloadButton"] > button *,
+div[data-testid="stDownloadButton"] button * {{
     color: inherit !important;
     -webkit-text-fill-color: inherit !important;
 }}
 .stDownloadButton > button:hover,
+.stDownloadButton button:hover,
+div[data-testid="stDownloadButton"] > button:hover,
+div[data-testid="stDownloadButton"] button:hover,
 .stDownloadButton > button:focus-visible,
+.stDownloadButton button:focus-visible,
+div[data-testid="stDownloadButton"] > button:focus-visible,
+div[data-testid="stDownloadButton"] button:focus-visible,
 .stDownloadButton > button:active,
-.stDownloadButton > button[aria-pressed="true"] {{
+.stDownloadButton button:active,
+div[data-testid="stDownloadButton"] > button:active,
+div[data-testid="stDownloadButton"] button:active,
+.stDownloadButton > button[aria-pressed="true"],
+.stDownloadButton button[aria-pressed="true"],
+div[data-testid="stDownloadButton"] > button[aria-pressed="true"],
+div[data-testid="stDownloadButton"] button[aria-pressed="true"] {{
     background-color: {YELLOW} !important;
     color: {YELLOW_ON_YELLOW_TEXT} !important;
     border: 1px solid {YELLOW} !important;
 }}
 .stDownloadButton > button:hover *,
+.stDownloadButton button:hover *,
+div[data-testid="stDownloadButton"] > button:hover *,
+div[data-testid="stDownloadButton"] button:hover *,
 .stDownloadButton > button:focus-visible *,
+.stDownloadButton button:focus-visible *,
+div[data-testid="stDownloadButton"] > button:focus-visible *,
+div[data-testid="stDownloadButton"] button:focus-visible *,
 .stDownloadButton > button:active *,
-.stDownloadButton > button[aria-pressed="true"] * {{
+.stDownloadButton button:active *,
+div[data-testid="stDownloadButton"] > button:active *,
+div[data-testid="stDownloadButton"] button:active *,
+.stDownloadButton > button[aria-pressed="true"] *,
+.stDownloadButton button[aria-pressed="true"] *,
+div[data-testid="stDownloadButton"] > button[aria-pressed="true"] *,
+div[data-testid="stDownloadButton"] button[aria-pressed="true"] * {{
     color: {YELLOW_ON_YELLOW_TEXT} !important;
     -webkit-text-fill-color: {YELLOW_ON_YELLOW_TEXT} !important;
 }}
