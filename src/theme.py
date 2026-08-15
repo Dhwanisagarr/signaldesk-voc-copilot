@@ -117,6 +117,26 @@ hr {{ border-color: {BORDER_SUBTLE} !important; margin: 1.25rem 0 !important; }}
     border: 1px solid {BORDER} !important;
     background-color: {BG_ELEVATED_2} !important;
     color: {WHITE} !important;
+    transition: all 0.15s ease;
+}}
+.stDownloadButton > button * {{
+    color: inherit !important;
+    -webkit-text-fill-color: inherit !important;
+}}
+.stDownloadButton > button:hover,
+.stDownloadButton > button:focus-visible,
+.stDownloadButton > button:active,
+.stDownloadButton > button[aria-pressed="true"] {{
+    background-color: {YELLOW} !important;
+    color: {YELLOW_ON_YELLOW_TEXT} !important;
+    border: 1px solid {YELLOW} !important;
+}}
+.stDownloadButton > button:hover *,
+.stDownloadButton > button:focus-visible *,
+.stDownloadButton > button:active *,
+.stDownloadButton > button[aria-pressed="true"] * {{
+    color: {YELLOW_ON_YELLOW_TEXT} !important;
+    -webkit-text-fill-color: {YELLOW_ON_YELLOW_TEXT} !important;
 }}
 
 [data-testid="stVerticalBlockBorderWrapper"] {{

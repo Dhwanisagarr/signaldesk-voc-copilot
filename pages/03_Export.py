@@ -88,7 +88,6 @@ def main() -> None:
                 mime="text/markdown",
                 width="stretch",
                 key="rep_md",
-                type="primary",
             )
 
         with st.container(border=True):
